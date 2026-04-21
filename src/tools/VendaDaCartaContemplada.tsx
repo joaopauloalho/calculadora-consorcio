@@ -184,14 +184,28 @@ type SetFn = (k: keyof VendaCartaData) => (v: number) => void;
 type Results = ReturnType<typeof calculateVendaCarta>;
 
 function Step1({ data, set, r }: { data: VendaCartaData; set: SetFn; r: Results }) {
+  const meiaParcela = (data.valorCredito * (1 + data.taxaAdm)) / data.prazoTotal / 2;
+
+  const onCreditoChange = (v: number) => {
+    const novaParc = (v * (1 + data.taxaAdm)) / data.prazoTotal / 2;
+    set('valorCredito')(v);
+    set('valorParcela')(Math.round(novaParc));
+  };
+
+  const onParcelaChange = (v: number) => {
+    const novoCredito = (v * 2 * data.prazoTotal) / (1 + data.taxaAdm);
+    set('valorParcela')(v);
+    set('valorCredito')(Math.round(novoCredito));
+  };
+
   return (
     <div className="space-y-8">
-      <StepHeader step={1} title="Dados da Cota" subtitle="Informe os parâmetros do consórcio que você adquiriu ou pretende adquirir." />
+      <StepHeader step={1} title="Dados da Cota" subtitle="Preencha o Crédito ou a Meia Parcela — o outro campo é calculado automaticamente." />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        <GoldInput label="Valor do Crédito" value={data.valorCredito} onChange={set('valorCredito')} suffix="R$" />
-        <GoldInput label="Valor da Parcela Mensal" value={data.valorParcela} onChange={set('valorParcela')} suffix="R$" />
-        <GoldInput label="Taxa Adm. Total" value={data.taxaAdm * 100} onChange={(v) => set('taxaAdm')(v / 100)} suffix="%" />
-        <GoldInput label="Prazo Total do Grupo" value={data.prazoTotal} onChange={set('prazoTotal')} suffix="meses" />
+        <GoldInput label="Valor do Crédito" value={data.valorCredito} onChange={onCreditoChange} suffix="R$" />
+        <GoldInput label="Meia Parcela (até contemplar)" value={Math.round(meiaParcela)} onChange={onParcelaChange} suffix="R$" />
+        <GoldInput label="Taxa Adm. Total" value={data.taxaAdm * 100} onChange={(v) => { set('taxaAdm')(v / 100); set('valorParcela')(Math.round((data.valorCredito * (1 + v / 100)) / data.prazoTotal / 2)); }} suffix="%" />
+        <GoldInput label="Prazo Total do Grupo" value={data.prazoTotal} onChange={(v) => { set('prazoTotal')(v); set('valorParcela')(Math.round((data.valorCredito * (1 + data.taxaAdm)) / v / 2)); }} suffix="meses" />
       </div>
       <motion.div
         initial={{ opacity: 0, scale: 0.97 }}
