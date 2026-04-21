@@ -254,12 +254,12 @@ function Step2({ data, set, r }: { data: VendaCartaData; set: SetFn; r: Results 
 }
 
 function Step3({ data, set, r }: { data: VendaCartaData; set: SetFn; r: Results }) {
-  const [agioPercent, setAgioPercent] = useState(
-    data.valorCredito > 0 ? Math.round((data.valorVendaChave / data.valorCredito) * 100) : 20
-  );
+  const [agioStr, setAgioStr] = useState('20');
+  const agioPercent = parseFloat(agioStr) || 0;
 
-  const onPercentChange = (p: number) => {
-    setAgioPercent(p);
+  const onPercentChange = (s: string) => {
+    setAgioStr(s);
+    const p = parseFloat(s) || 0;
     set('valorVendaChave')(Math.round(data.valorCredito * p / 100));
   };
 
@@ -269,7 +269,7 @@ function Step3({ data, set, r }: { data: VendaCartaData; set: SetFn; r: Results 
       <div className="p-6 rounded-2xl border space-y-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
         <div>
           <Label>Ágio sobre o Crédito (%)</Label>
-          <input type="number" value={agioPercent} onChange={(e) => onPercentChange(Number(e.target.value))} />
+          <input type="number" value={agioStr} onChange={(e) => onPercentChange(e.target.value)} />
         </div>
         <div className="flex justify-between items-center px-1">
           <span className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--text-secondary)' }}>
