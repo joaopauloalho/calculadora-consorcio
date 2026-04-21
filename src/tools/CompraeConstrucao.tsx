@@ -312,106 +312,75 @@ function Step5({ data, r }: { data: SimData; r: ReturnType<typeof calculate> }) 
 }
 
 function Step6({ data, set, r }: { data: SimData; set: (k: keyof SimData) => (v: number) => void; r: ReturnType<typeof calculate> }) {
-  const jurosBanco = r.totalEstimadoPagoBanco - r.valorFinanciadoBanco;
-  const custoConsorcioSobreCredito = r.totalComTaxa - r.totalCredito;
-
   return (
-    <div className="space-y-8">
-      <StepHeader step={6} title="Consórcio vs. Banco" subtitle="Compare a parcela mensal, o custo total do dinheiro e o prazo que você fica preso no financiamento." />
+    <div className="space-y-6">
+      <StepHeader step={6} title="Consórcio vs. Banco" subtitle="Compare parcela mensal e prazo entre as duas modalidades." />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-5 rounded-2xl border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-        <GoldInput label="Valor de Mercado do Imóvel Pronto (R$)" value={data.valorVendaMercado} onChange={set('valorVendaMercado')} />
+      {/* Inputs */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-5 rounded-2xl border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+        <GoldInput label="Valor de Mercado do Imóvel (R$)" value={data.valorVendaMercado} onChange={set('valorVendaMercado')} />
         <GoldInput label="Entrada / Ágio Recebido (R$)" value={data.entradaVenda} onChange={set('entradaVenda')} />
+        <div className="md:col-span-2 flex justify-between items-center px-1">
+          <span className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--text-secondary)' }}>Valor financiado no banco</span>
+          <span className="font-black" style={{ color: 'var(--gold)', fontFamily: 'Montserrat' }}>{fmt(r.valorFinanciadoBanco)}</span>
+        </div>
       </div>
 
-      {/* Comparativo de Parcela */}
+      {/* Parcela Mensal */}
       <div className="rounded-2xl overflow-hidden border" style={{ borderColor: 'var(--border)' }}>
-        <div className="px-6 py-4" style={{ background: 'rgba(193,177,118,0.08)' }}>
+        <div className="px-5 py-3" style={{ background: 'rgba(193,177,118,0.08)' }}>
           <p className="text-xs font-black uppercase tracking-widest" style={{ color: 'var(--gold)' }}>Parcela Mensal</p>
         </div>
-        <div className="grid grid-cols-2 divide-x" style={{ borderColor: 'var(--border)' }}>
+        <div className="grid grid-cols-2">
           <div className="p-6" style={{ background: '#001A0A' }}>
-            <div className="flex items-center gap-2 mb-4">
-              <CheckCircle2 size={15} style={{ color: '#00C864' }} />
+            <div className="flex items-center gap-2 mb-3">
+              <CheckCircle2 size={14} style={{ color: '#00C864' }} />
               <span className="text-xs font-bold text-white">Consórcio</span>
             </div>
-            <p className="text-[10px] uppercase font-bold mb-1" style={{ color: 'var(--text-secondary)' }}>Pós-contemplação</p>
-            <p className="text-2xl font-black" style={{ fontFamily: 'Montserrat', color: '#00C864' }}>{fmt(r.parcelaComSeguro)}</p>
-            <p className="text-[10px] mt-2" style={{ color: 'var(--text-secondary)' }}>{r.parcelasRestantes} meses restantes</p>
+            <p className="text-3xl font-black" style={{ fontFamily: 'Montserrat', color: '#00C864' }}>{fmt(r.parcelaComSeguro)}</p>
+            <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>pós-contemplação</p>
           </div>
-          <div className="p-6" style={{ background: '#1A0005' }}>
-            <div className="flex items-center gap-2 mb-4">
-              <AlertCircle size={15} style={{ color: 'var(--alert)' }} />
+          <div className="p-6 border-l" style={{ background: '#1A0005', borderColor: 'var(--border)' }}>
+            <div className="flex items-center gap-2 mb-3">
+              <AlertCircle size={14} style={{ color: 'var(--alert)' }} />
               <span className="text-xs font-bold text-white">Banco (SAC)</span>
             </div>
-            <p className="text-[10px] uppercase font-bold mb-1" style={{ color: 'var(--text-secondary)' }}>Parcela inicial</p>
-            <p className="text-2xl font-black" style={{ fontFamily: 'Montserrat', color: 'var(--alert)' }}>{fmt(r.parcelaEstimadaBanco)}</p>
-            <p className="text-[10px] mt-2" style={{ color: 'var(--text-secondary)' }}>360 meses (30 anos)</p>
+            <p className="text-3xl font-black" style={{ fontFamily: 'Montserrat', color: 'var(--alert)' }}>{fmt(r.parcelaEstimadaBanco)}</p>
+            <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>parcela inicial</p>
           </div>
         </div>
-        <div className="px-6 py-4 flex items-center justify-between" style={{ background: 'rgba(0,0,0,0.4)', borderTop: '1px solid var(--border)' }}>
-          <span className="text-xs font-bold" style={{ color: 'var(--text-secondary)' }}>Economia mensal na parcela</span>
+        <div className="px-5 py-3 flex justify-between items-center" style={{ background: 'rgba(0,0,0,0.4)', borderTop: '1px solid var(--border)' }}>
+          <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>Economia mensal</span>
           <span className="font-black" style={{ color: 'var(--gold)', fontFamily: 'Montserrat' }}>
             {fmt(r.parcelaEstimadaBanco - r.parcelaComSeguro)}/mês
           </span>
         </div>
       </div>
 
-      {/* Custo do Dinheiro */}
-      <div className="rounded-2xl overflow-hidden border" style={{ borderColor: 'var(--border)' }}>
-        <div className="px-6 py-4" style={{ background: 'rgba(193,177,118,0.08)' }}>
-          <p className="text-xs font-black uppercase tracking-widest" style={{ color: 'var(--gold)' }}>Custo Total do Dinheiro (Juros + Taxas)</p>
-        </div>
-        <div className="grid grid-cols-2 divide-x" style={{ borderColor: 'var(--border)' }}>
-          <div className="p-6" style={{ background: '#001A0A' }}>
-            <p className="text-[10px] uppercase font-bold mb-1" style={{ color: 'var(--text-secondary)' }}>Taxa adm. consórcio (23%)</p>
-            <p className="text-2xl font-black" style={{ fontFamily: 'Montserrat', color: '#00C864' }}>{fmt(custoConsorcioSobreCredito)}</p>
-            <p className="text-[10px] mt-2" style={{ color: 'var(--text-secondary)' }}>
-              {((custoConsorcioSobreCredito / r.totalCredito) * 100).toFixed(1)}% sobre o crédito
-            </p>
-          </div>
-          <div className="p-6" style={{ background: '#1A0005' }}>
-            <p className="text-[10px] uppercase font-bold mb-1" style={{ color: 'var(--text-secondary)' }}>Juros banco ~11% a.a.</p>
-            <p className="text-2xl font-black" style={{ fontFamily: 'Montserrat', color: 'var(--alert)' }}>{fmt(jurosBanco)}</p>
-            <p className="text-[10px] mt-2" style={{ color: 'var(--text-secondary)' }}>
-              {((jurosBanco / r.valorFinanciadoBanco) * 100).toFixed(0)}% sobre o financiado
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Prazo — destaque dramático */}
-      <div className="p-6 rounded-2xl border" style={{ background: 'linear-gradient(135deg, #0D0D00 0%, #1A1200 100%)', borderColor: 'rgba(193,177,118,0.25)' }}>
-        <p className="text-xs font-black uppercase tracking-widest mb-5" style={{ color: 'var(--gold)' }}>
-          O Prazo que o Banco te Prende
+      {/* Prazo */}
+      <div className="p-6 rounded-2xl border" style={{ background: 'linear-gradient(135deg, #0D0D00, #1A1200)', borderColor: 'rgba(193,177,118,0.25)' }}>
+        <p className="text-xs font-black uppercase tracking-widest mb-4" style={{ color: 'var(--gold)' }}>
+          Prazo de Dívida
         </p>
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-2 gap-4">
           <div className="text-center p-4 rounded-xl" style={{ background: 'rgba(0,200,100,0.08)', border: '1px solid rgba(0,200,100,0.2)' }}>
             <p className="text-[10px] uppercase font-bold mb-2" style={{ color: '#00C864' }}>Consórcio</p>
             <p className="text-4xl font-black text-white" style={{ fontFamily: 'Montserrat' }}>{r.parcelasRestantes}</p>
-            <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>meses restantes</p>
-            <p className="text-xs font-bold mt-1" style={{ color: '#00C864' }}>≈ {(r.parcelasRestantes / 12).toFixed(1)} anos</p>
+            <p className="text-xs mt-1 font-bold" style={{ color: '#00C864' }}>≈ {(r.parcelasRestantes / 12).toFixed(1)} anos</p>
           </div>
           <div className="text-center p-4 rounded-xl" style={{ background: 'rgba(204,51,102,0.08)', border: '1px solid rgba(204,51,102,0.2)' }}>
             <p className="text-[10px] uppercase font-bold mb-2" style={{ color: 'var(--alert)' }}>Banco</p>
             <p className="text-4xl font-black" style={{ fontFamily: 'Montserrat', color: 'var(--alert)' }}>360</p>
-            <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>meses</p>
-            <p className="text-xs font-bold mt-1" style={{ color: 'var(--alert)' }}>30 anos de dívida</p>
+            <p className="text-xs mt-1 font-bold" style={{ color: 'var(--alert)' }}>30 anos de dívida</p>
           </div>
         </div>
-        <div className="mt-5 pt-5 flex items-center justify-between" style={{ borderTop: '1px solid rgba(193,177,118,0.1)' }}>
-          <span className="text-xs font-bold" style={{ color: 'var(--text-secondary)' }}>Você quita {360 - r.parcelasRestantes} meses antes</span>
+        <div className="mt-4 pt-4 flex justify-between items-center" style={{ borderTop: '1px solid rgba(193,177,118,0.1)' }}>
+          <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>Você quita {((360 - r.parcelasRestantes) / 12).toFixed(1)} anos antes</span>
           <span className="text-sm font-black" style={{ color: 'var(--gold)', fontFamily: 'Montserrat' }}>
-            {((360 - r.parcelasRestantes) / 12).toFixed(1)} anos a menos de dívida
+            {360 - r.parcelasRestantes} meses a menos
           </span>
         </div>
       </div>
-
-      <ComparisonChart
-        consorcioTotal={r.custoTotalAquisicaoConsorcio}
-        bancoTotal={r.totalEstimadoPagoBanco}
-        economia={r.totalEstimadoPagoBanco - r.custoTotalAquisicaoConsorcio}
-      />
     </div>
   );
 }
