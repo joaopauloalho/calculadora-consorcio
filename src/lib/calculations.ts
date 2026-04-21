@@ -158,7 +158,8 @@ export function calculateAluguel(data: AluguelData): AluguelResults {
   const saldoDevedorNaContemplacao = Math.max(0, totalComTaxa - totalDesembolsado);
 
   const aluguelMensal = data.valorImovelFinal * data.rendimentoPercent;
-  const saldoLivreBasico = aluguelMensal - parcelaCheia;
+  // Incremento real pós-contemplação: meia parcela já era paga antes, só o acréscimo (meia→cheia) é novo custo
+  const saldoLivreBasico = aluguelMensal - meiaParcela;
   const saldoComReplicacao = aluguelMensal - parcelaCheia - meiaParcela;
   const operacoesFinanciaveis = meiaParcela > 0
     ? Math.floor(Math.max(0, saldoLivreBasico) / meiaParcela)

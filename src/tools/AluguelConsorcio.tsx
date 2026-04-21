@@ -308,15 +308,13 @@ function Step3({ data, set, r }: { data: AluguelData; set: SetFn; r: Results }) 
 }
 
 function Step4({ data, r }: { data: AluguelData; r: Results }) {
-  const autofinanciado = r.saldoComReplicacao >= 0;
-  const parcialmenteAutofinanciado = r.saldoLivreBasico >= 0 && !autofinanciado;
-  const negativo = r.saldoLivreBasico < 0;
+  const positivo = r.saldoLivreBasico >= 0;
 
   return (
     <div className="space-y-6">
-      <StepHeader step={4} title="Fluxo Mensal e Replicação" subtitle="Comparativo entre o aluguel recebido e as parcelas pagas. Veja se a operação se auto-financia." />
+      <StepHeader step={4} title="Fluxo Mensal" subtitle="A meia parcela já era paga antes da contemplação — o custo incremental real é apenas o acréscimo de meia→cheia." />
 
-      {/* Aluguel vs Parcela Cheia */}
+      {/* Aluguel vs Incremento */}
       <div className="rounded-2xl overflow-hidden border" style={{ borderColor: 'var(--border)' }}>
         <div className="px-5 py-3" style={{ background: 'rgba(193,177,118,0.08)' }}>
           <p className="text-xs font-black uppercase tracking-widest" style={{ color: 'var(--gold)' }}>Fluxo de Caixa Mensal</p>
@@ -333,89 +331,46 @@ function Step4({ data, r }: { data: AluguelData; r: Results }) {
           <div className="p-6 border-l" style={{ background: '#1A0005', borderColor: 'var(--border)' }}>
             <div className="flex items-center gap-2 mb-3">
               <AlertCircle size={14} style={{ color: 'var(--alert)' }} />
-              <span className="text-xs font-bold text-white">Parcela Cheia</span>
+              <span className="text-xs font-bold text-white">Incremento meia→cheia</span>
             </div>
-            <p className="text-3xl font-black" style={{ fontFamily: 'Montserrat', color: 'var(--alert)' }}>{fmt(r.parcelaCheia)}</p>
-            <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>saída mensal</p>
+            <p className="text-3xl font-black" style={{ fontFamily: 'Montserrat', color: 'var(--alert)' }}>{fmt(r.meiaParcela)}</p>
+            <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>custo extra pós-contemplação</p>
           </div>
         </div>
         <div className="px-5 py-4 border-t" style={{ background: 'rgba(0,0,0,0.5)', borderColor: 'var(--border)' }}>
           <div className="flex justify-between items-center">
             <span className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--text-secondary)' }}>Saldo livre mensal</span>
-            <span className="text-xl font-black" style={{ fontFamily: 'Montserrat', color: negativo ? 'var(--alert)' : '#00C864' }}>
+            <span className="text-xl font-black" style={{ fontFamily: 'Montserrat', color: positivo ? '#00C864' : 'var(--alert)' }}>
               {r.saldoLivreBasico >= 0 ? '+' : ''}{fmt(r.saldoLivreBasico)}
             </span>
           </div>
         </div>
       </div>
 
-      {/* Cenário de replicação */}
-      <div className="p-6 rounded-2xl border space-y-4" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-        <p className="text-xs font-black uppercase tracking-widest" style={{ color: 'var(--gold)' }}>
-          Capacidade de Replicação
-        </p>
-
-        {/* Linha: aluguel - cheia - meia */}
-        <div className="space-y-3">
-          <div className="flex justify-between items-center text-sm">
-            <span style={{ color: 'var(--text-secondary)' }}>Aluguel</span>
-            <span className="font-bold" style={{ color: '#00C864' }}>+ {fmt(r.aluguelMensal)}</span>
-          </div>
-          <div className="flex justify-between items-center text-sm">
-            <span style={{ color: 'var(--text-secondary)' }}>Parcela cheia (Op. atual)</span>
-            <span className="font-bold" style={{ color: 'var(--alert)' }}>− {fmt(r.parcelaCheia)}</span>
-          </div>
-          <div className="flex justify-between items-center text-sm">
-            <span style={{ color: 'var(--text-secondary)' }}>Meia parcela (nova Op.)</span>
-            <span className="font-bold" style={{ color: '#F0A500' }}>− {fmt(r.meiaParcela)}</span>
-          </div>
-          <div className="h-px" style={{ background: 'var(--border)' }} />
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-bold" style={{ color: 'var(--text-secondary)' }}>Saldo após nova operação</span>
-            <span className="text-xl font-black" style={{ fontFamily: 'Montserrat', color: autofinanciado ? 'var(--gold)' : negativo ? 'var(--alert)' : '#F0A500' }}>
-              {r.saldoComReplicacao >= 0 ? '+' : ''}{fmt(r.saldoComReplicacao)}
-            </span>
-          </div>
+      {/* Detalhamento */}
+      <div className="p-6 rounded-2xl border space-y-3" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+        <p className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: 'var(--gold)' }}>Detalhamento</p>
+        <div className="flex justify-between items-center text-sm">
+          <span style={{ color: 'var(--text-secondary)' }}>Aluguel recebido</span>
+          <span className="font-bold" style={{ color: '#00C864' }}>+ {fmt(r.aluguelMensal)}</span>
         </div>
-
-        {/* Status badge */}
-        <div className="mt-2 p-4 rounded-xl text-center" style={{
-          background: autofinanciado
-            ? 'rgba(193,177,118,0.1)'
-            : parcialmenteAutofinanciado
-              ? 'rgba(240,165,0,0.08)'
-              : 'rgba(204,51,102,0.08)',
-          border: `1px solid ${autofinanciado ? 'rgba(193,177,118,0.3)' : parcialmenteAutofinanciado ? 'rgba(240,165,0,0.3)' : 'rgba(204,51,102,0.3)'}`,
-        }}>
-          {autofinanciado && (
-            <>
-              <Repeat2 size={20} className="inline mb-1" style={{ color: 'var(--gold)' }} />
-              <p className="text-sm font-black text-white">Sistema Auto-Financiado</p>
-              <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
-                O aluguel cobre a parcela cheia <strong style={{ color: 'white' }}>e</strong> a meia parcela da próxima operação. Zero aporte extra.
-              </p>
-            </>
-          )}
-          {parcialmenteAutofinanciado && (
-            <>
-              <TrendingUp size={20} className="inline mb-1" style={{ color: '#F0A500' }} />
-              <p className="text-sm font-black text-white">Parcialmente Auto-Financiado</p>
-              <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
-                Saldo livre de {fmt(r.saldoLivreBasico)}/mês — cobre parte da meia parcela ({fmt(r.meiaParcela)}) da nova operação.
-              </p>
-            </>
-          )}
-          {negativo && (
-            <>
-              <TrendingDown size={20} className="inline mb-1" style={{ color: 'var(--alert)' }} />
-              <p className="text-sm font-black text-white">Aluguel Insuficiente</p>
-              <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
-                O aluguel não cobre a parcela cheia. Aumente o rendimento ou o valor do imóvel.
-              </p>
-            </>
-          )}
+        <div className="flex justify-between items-center text-sm">
+          <span style={{ color: 'var(--text-secondary)' }}>Meia parcela (já paga antes)</span>
+          <span className="font-bold" style={{ color: '#F0A500' }}>+ {fmt(r.meiaParcela)}</span>
+        </div>
+        <div className="flex justify-between items-center text-sm">
+          <span style={{ color: 'var(--text-secondary)' }}>Parcela cheia total</span>
+          <span className="font-bold" style={{ color: 'var(--alert)' }}>− {fmt(r.parcelaCheia)}</span>
+        </div>
+        <div className="h-px" style={{ background: 'var(--border)' }} />
+        <div className="flex justify-between items-center">
+          <span className="text-sm font-bold" style={{ color: 'var(--text-secondary)' }}>Saldo líquido mensal</span>
+          <span className="text-xl font-black" style={{ fontFamily: 'Montserrat', color: positivo ? 'var(--gold)' : 'var(--alert)' }}>
+            {r.saldoLivreBasico >= 0 ? '+' : ''}{fmt(r.saldoLivreBasico)}
+          </span>
         </div>
       </div>
+
     </div>
   );
 }
