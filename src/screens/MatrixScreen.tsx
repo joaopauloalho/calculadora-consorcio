@@ -33,12 +33,12 @@ const tools = [
   {
     id: 3,
     icon: Landmark,
-    title: 'Portfólio de Grupos',
-    description: 'Diversifique em múltiplos grupos e consórcios. Calcule a rentabilidade consolidada da carteira.',
-    tag: 'Em breve',
-    active: false,
-    color: '#A0A0A0',
-    colorBg: 'rgba(160,160,160,0.08)',
+    title: 'Aluguel com Consórcio',
+    description: 'Use o crédito para adquirir e alugar. Calcule fluxo mensal, replicação automática e patrimônio final.',
+    tag: 'Disponível',
+    active: true,
+    color: 'var(--gold)',
+    colorBg: 'var(--gold-dim)',
   },
   {
     id: 4,

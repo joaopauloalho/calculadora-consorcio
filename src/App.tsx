@@ -4,6 +4,7 @@ import WelcomeScreen from './screens/WelcomeScreen';
 import MatrixScreen from './screens/MatrixScreen';
 import CompraeConstrucao from './tools/CompraeConstrucao';
 import VendaDaCartaContemplada from './tools/VendaDaCartaContemplada';
+import AluguelConsorcio from './tools/AluguelConsorcio';
 
 type View = 'welcome' | 'matrix' | 'tool';
 type Path = 'acquisition' | 'return';
@@ -56,6 +57,12 @@ export default function App() {
       {view === 'tool' && tool === 2 && (
         <motion.div key="tool-2" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}>
           <VendaDaCartaContemplada onBack={() => setView('matrix')} />
+        </motion.div>
+      )}
+
+      {view === 'tool' && tool === 3 && (
+        <motion.div key="tool-3" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}>
+          <AluguelConsorcio onBack={() => setView('matrix')} />
         </motion.div>
       )}
     </AnimatePresence>

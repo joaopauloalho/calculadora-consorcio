@@ -124,6 +124,60 @@ export function calculateVendaCarta(data: VendaCartaData): VendaCartaResults {
   };
 }
 
+export interface AluguelData {
+  valorCredito: number;
+  taxaAdm: number;
+  prazoTotal: number;
+  mesContemplacao: number;
+  valorImovelFinal: number;
+  rendimentoPercent: number;
+  numOperacoes: number;
+}
+
+export interface AluguelResults {
+  totalComTaxa: number;
+  parcelaCheia: number;
+  meiaParcela: number;
+  totalDesembolsado: number;
+  saldoDevedorNaContemplacao: number;
+  aluguelMensal: number;
+  saldoLivreBasico: number;
+  saldoComReplicacao: number;
+  operacoesFinanciaveis: number;
+  patrimonioTotal: number;
+  rendaBrutaMensal: number;
+  rendaLiquidaMensal: number;
+  totalInvestidoTodas: number;
+}
+
+export function calculateAluguel(data: AluguelData): AluguelResults {
+  const totalComTaxa = data.valorCredito * (1 + data.taxaAdm);
+  const parcelaCheia = totalComTaxa / data.prazoTotal;
+  const meiaParcela = parcelaCheia / 2;
+  const totalDesembolsado = data.mesContemplacao * meiaParcela;
+  const saldoDevedorNaContemplacao = Math.max(0, totalComTaxa - totalDesembolsado);
+
+  const aluguelMensal = data.valorImovelFinal * data.rendimentoPercent;
+  const saldoLivreBasico = aluguelMensal - parcelaCheia;
+  const saldoComReplicacao = aluguelMensal - parcelaCheia - meiaParcela;
+  const operacoesFinanciaveis = meiaParcela > 0
+    ? Math.floor(Math.max(0, saldoLivreBasico) / meiaParcela)
+    : 0;
+
+  const patrimonioTotal = data.numOperacoes * data.valorImovelFinal;
+  const rendaBrutaMensal = data.numOperacoes * aluguelMensal;
+  const rendaLiquidaMensal = rendaBrutaMensal;
+  const totalInvestidoTodas = data.numOperacoes * totalDesembolsado;
+
+  return {
+    totalComTaxa, parcelaCheia, meiaParcela,
+    totalDesembolsado, saldoDevedorNaContemplacao,
+    aluguelMensal, saldoLivreBasico, saldoComReplicacao,
+    operacoesFinanciaveis, patrimonioTotal,
+    rendaBrutaMensal, rendaLiquidaMensal, totalInvestidoTodas,
+  };
+}
+
 export function contemplationProbability(
   month: number,
   prazoTotal: number,
