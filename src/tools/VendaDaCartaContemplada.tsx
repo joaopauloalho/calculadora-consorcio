@@ -40,7 +40,11 @@ function GoldInput({ label, value, onChange, suffix }: { label: string; value: n
   return (
     <div>
       <Label>{label}{suffix ? ` (${suffix})` : ''}</Label>
-      <input type="number" value={value} onChange={(e) => onChange(Number(e.target.value))} />
+      <input
+        type="number"
+        value={value === 0 ? '' : value}
+        onChange={(e) => onChange(e.target.value === '' ? 0 : Number(e.target.value))}
+      />
     </div>
   );
 }

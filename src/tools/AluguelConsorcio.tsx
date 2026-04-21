@@ -38,7 +38,11 @@ function GoldInput({ label, value, onChange }: { label: string; value: number; o
   return (
     <div>
       <Label>{label}</Label>
-      <input type="number" value={value} onChange={(e) => onChange(Number(e.target.value))} />
+      <input
+        type="number"
+        value={value === 0 ? '' : value}
+        onChange={(e) => onChange(e.target.value === '' ? 0 : Number(e.target.value))}
+      />
     </div>
   );
 }
