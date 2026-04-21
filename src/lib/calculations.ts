@@ -193,3 +193,73 @@ export function contemplationProbability(
 
 export const fmt = (v: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+
+export type AssetType = 'imovel' | 'veiculo';
+export type PaymentMode = 'meia' | 'cheia';
+
+export interface QuickCalcData {
+  assetType: AssetType;
+  valorCredito: number;
+  prazoTotal: number;
+  comSeguro: boolean;
+  paymentMode: PaymentMode;
+  mesContemplacao: number;
+  venderComLucro: boolean;
+  percentAgio: number;
+}
+
+export interface QuickCalcResults {
+  taxaAdm: number;
+  seguroPercent: number;
+  totalComTaxa: number;
+  parcelaCheiaOriginal: number;
+  meiaParcela: number;
+  saldoDevedorContemplacao: number;
+  totalInvestido: number;
+  parcelaNova: number;
+  valorVenda: number;
+  lucroLiquido: number;
+  capitalMedioEmpregado: number;
+  rentabilidadeMensal: number;
+}
+
+export function calculateQuickCalc(data: QuickCalcData): QuickCalcResults {
+  const taxaAdm =
+    data.assetType === 'imovel' ? 0.23 : data.prazoTotal <= 48 ? 0.085 : 0.16;
+
+  const seguroPercent = data.assetType === 'imovel' ? 0.000555 : 0.000888;
+
+  const totalComTaxa = data.valorCredito * (1 + taxaAdm);
+  const parcelaCheiaOriginal = totalComTaxa / data.prazoTotal;
+  const meiaParcela = parcelaCheiaOriginal / 2;
+  const parcelaAtual = data.paymentMode === 'meia' ? meiaParcela : parcelaCheiaOriginal;
+
+  const saldoDevedorContemplacao = Math.max(
+    0,
+    totalComTaxa - data.mesContemplacao * parcelaAtual,
+  );
+
+  const parcelasPagas = data.mesContemplacao * parcelaAtual;
+  const avgSaldo = (totalComTaxa + saldoDevedorContemplacao) / 2;
+  const seguroPreContemp = data.comSeguro
+    ? avgSaldo * seguroPercent * data.mesContemplacao
+    : 0;
+  const totalInvestido = parcelasPagas + seguroPreContemp;
+
+  // Pós-contemplação: sempre parcela cheia + seguro sempre obrigatório
+  const parcelaNova = parcelaCheiaOriginal + saldoDevedorContemplacao * seguroPercent;
+
+  const valorVenda = data.valorCredito * (1 + data.percentAgio / 100);
+  const lucroLiquido = valorVenda - totalInvestido;
+  const capitalMedioEmpregado = totalInvestido / 2;
+  const rentabilidadeMensal =
+    capitalMedioEmpregado > 0 && data.mesContemplacao > 0
+      ? (lucroLiquido / capitalMedioEmpregado / data.mesContemplacao) * 100
+      : 0;
+
+  return {
+    taxaAdm, seguroPercent, totalComTaxa, parcelaCheiaOriginal,
+    meiaParcela, saldoDevedorContemplacao, totalInvestido, parcelaNova,
+    valorVenda, lucroLiquido, capitalMedioEmpregado, rentabilidadeMensal,
+  };
+}

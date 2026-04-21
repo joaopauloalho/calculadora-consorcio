@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import WelcomeScreen from './screens/WelcomeScreen';
+import PurposeScreen, { type Purpose } from './screens/PurposeScreen';
 import MatrixScreen from './screens/MatrixScreen';
 import CompraeConstrucao from './tools/CompraeConstrucao';
 import VendaDaCartaContemplada from './tools/VendaDaCartaContemplada';
 import AluguelConsorcio from './tools/AluguelConsorcio';
+import QuickCalc from './tools/QuickCalc';
 
-type View = 'welcome' | 'matrix' | 'tool';
+type View = 'purpose' | 'matrix' | 'tool' | 'quickcalc';
 type Path = 'acquisition' | 'return';
 
 const pageVariants = {
@@ -16,13 +17,17 @@ const pageVariants = {
 };
 
 export default function App() {
-  const [view, setView] = useState<View>('welcome');
+  const [view, setView] = useState<View>('purpose');
   const [path, setPath] = useState<Path>('acquisition');
   const [tool, setTool] = useState<number | null>(null);
 
-  const handlePathSelect = (p: Path) => {
-    setPath(p);
-    setView('matrix');
+  const handlePurposeSelect = (purpose: Purpose) => {
+    if (purpose === 'quickcalc') {
+      setView('quickcalc');
+    } else {
+      setPath(purpose);
+      setView('matrix');
+    }
   };
 
   const handleToolSelect = (t: number) => {
@@ -32,9 +37,15 @@ export default function App() {
 
   return (
     <AnimatePresence mode="wait">
-      {view === 'welcome' && (
-        <motion.div key="welcome" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}>
-          <WelcomeScreen onSelect={handlePathSelect} />
+      {view === 'purpose' && (
+        <motion.div key="purpose" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}>
+          <PurposeScreen onSelect={handlePurposeSelect} />
+        </motion.div>
+      )}
+
+      {view === 'quickcalc' && (
+        <motion.div key="quickcalc" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}>
+          <QuickCalc onBack={() => setView('purpose')} />
         </motion.div>
       )}
 
@@ -43,7 +54,7 @@ export default function App() {
           <MatrixScreen
             path={path}
             onSelect={handleToolSelect}
-            onBack={() => setView('welcome')}
+            onBack={() => setView('purpose')}
           />
         </motion.div>
       )}
