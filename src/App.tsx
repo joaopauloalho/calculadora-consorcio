@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import WelcomeScreen from './screens/WelcomeScreen';
 import MatrixScreen from './screens/MatrixScreen';
 import CompraeConstrucao from './tools/CompraeConstrucao';
+import VendaDaCartaContemplada from './tools/VendaDaCartaContemplada';
 
 type View = 'welcome' | 'matrix' | 'tool';
 type Path = 'acquisition' | 'return';
@@ -49,6 +50,12 @@ export default function App() {
       {view === 'tool' && tool === 1 && (
         <motion.div key="tool-1" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}>
           <CompraeConstrucao onBack={() => setView('matrix')} />
+        </motion.div>
+      )}
+
+      {view === 'tool' && tool === 2 && (
+        <motion.div key="tool-2" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}>
+          <VendaDaCartaContemplada onBack={() => setView('matrix')} />
         </motion.div>
       )}
     </AnimatePresence>

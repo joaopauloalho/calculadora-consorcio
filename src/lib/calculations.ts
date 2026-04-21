@@ -71,6 +71,52 @@ export function calculate(data: SimData): SimResults {
   };
 }
 
+export interface VendaCartaData {
+  valorCredito: number;
+  valorParcela: number;
+  taxaAdm: number;
+  prazoTotal: number;
+  mesContemplacao: number;
+  valorVendaChave: number;
+}
+
+export interface VendaCartaResults {
+  totalComTaxa: number;
+  totalDesembolsado: number;
+  saldoDevedorNaContemplacao: number;
+  lucroLiquido: number;
+  roiAlavancado: number;
+  lucroMensalMedio: number;
+  custoTotalComprador: number;
+  parcelaEstimadaBanco: number;
+  totalEstimadoPagoBanco: number;
+  economiaTotalComprador: number;
+}
+
+export function calculateVendaCarta(data: VendaCartaData): VendaCartaResults {
+  const totalComTaxa = data.valorCredito * (1 + data.taxaAdm);
+  const totalDesembolsado = data.mesContemplacao * data.valorParcela;
+  const saldoDevedorNaContemplacao = Math.max(0, totalComTaxa - totalDesembolsado);
+
+  const lucroLiquido = data.valorVendaChave - totalDesembolsado;
+  const roiAlavancado = totalDesembolsado > 0 ? (lucroLiquido / totalDesembolsado) * 100 : 0;
+  const lucroMensalMedio = data.mesContemplacao > 0 ? lucroLiquido / data.mesContemplacao : 0;
+
+  const custoTotalComprador = data.valorVendaChave + saldoDevedorNaContemplacao;
+  const amortizacao = data.valorCredito / 360;
+  const juros = data.valorCredito * 0.0087;
+  const parcelaEstimadaBanco = amortizacao + juros + 450;
+  const totalEstimadoPagoBanco = data.valorCredito * 2.85;
+  const economiaTotalComprador = totalEstimadoPagoBanco - custoTotalComprador;
+
+  return {
+    totalComTaxa, totalDesembolsado, saldoDevedorNaContemplacao,
+    lucroLiquido, roiAlavancado, lucroMensalMedio,
+    custoTotalComprador, parcelaEstimadaBanco, totalEstimadoPagoBanco,
+    economiaTotalComprador,
+  };
+}
+
 export function contemplationProbability(
   month: number,
   prazoTotal: number,
