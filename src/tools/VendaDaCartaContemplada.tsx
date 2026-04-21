@@ -255,13 +255,33 @@ function Step2({ data, set, r }: { data: VendaCartaData; set: SetFn; r: Results 
 }
 
 function Step3({ data, set, r }: { data: VendaCartaData; set: SetFn; r: Results }) {
+  const [agioPercent, setAgioPercent] = useState(
+    data.valorCredito > 0 ? Math.round((data.valorVendaChave / data.valorCredito) * 100) : 20
+  );
+
+  const onPercentChange = (p: number) => {
+    setAgioPercent(p);
+    set('valorVendaChave')(Math.round(data.valorCredito * p / 100));
+  };
+
   return (
     <div className="space-y-8">
-      <StepHeader step={3} title="Definição do Ágio" subtitle="Defina o valor pelo qual você venderá a carta contemplada (a 'chave'). O comprador assume o saldo devedor." />
+      <StepHeader step={3} title="Definição do Ágio" subtitle="Informe o ágio como % do crédito. O comprador paga esse valor e assume o saldo devedor restante." />
       <div className="p-6 rounded-2xl border space-y-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-        <GoldInput label="Valor de Venda da Chave (Ágio)" value={data.valorVendaChave} onChange={set('valorVendaChave')} suffix="R$" />
+        <div>
+          <Label>Ágio sobre o Crédito (%)</Label>
+          <input type="number" value={agioPercent} onChange={(e) => onPercentChange(Number(e.target.value))} />
+        </div>
+        <div className="flex justify-between items-center px-1">
+          <span className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--text-secondary)' }}>
+            Valor em reais
+          </span>
+          <span className="font-black text-lg" style={{ color: 'var(--gold)', fontFamily: 'Montserrat' }}>
+            {fmt(data.valorVendaChave)}
+          </span>
+        </div>
         <div className="h-px" style={{ background: 'var(--border)' }} />
-        <div className="grid grid-cols-2 gap-4 text-sm">
+        <div className="grid grid-cols-2 gap-4">
           <div>
             <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--text-secondary)' }}>Você recebe</p>
             <p className="text-xl font-black" style={{ fontFamily: 'Montserrat', color: '#00C864' }}>{fmt(data.valorVendaChave)}</p>
@@ -275,7 +295,7 @@ function Step3({ data, set, r }: { data: VendaCartaData; set: SetFn; r: Results 
       </div>
       <div className="p-5 rounded-2xl border text-sm" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>
         <Info size={14} className="inline mr-2" style={{ color: 'var(--gold)' }} />
-        O <strong style={{ color: 'white' }}>ágio</strong> é o lucro que você obtém por ter aguardado a contemplação. O comprador paga o ágio + assume as parcelas restantes do grupo, obtendo um imóvel abaixo do custo de um financiamento bancário.
+        O <strong style={{ color: 'white' }}>ágio</strong> é o prêmio pela contemplação. O comprador paga {agioPercent}% do crédito ({fmt(data.valorVendaChave)}) e assume as parcelas restantes — ainda assim pagando menos que no banco.
       </div>
     </div>
   );
@@ -345,7 +365,7 @@ function Step4({ data, set, r }: { data: VendaCartaData; set: SetFn; r: Results 
             </div>
           </div>
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--text-secondary)' }}>ROI Alavancado</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--text-secondary)' }}>ROI Total</p>
             <p className="text-lg font-black" style={{ fontFamily: 'Montserrat', color: isPositive ? '#00C864' : 'var(--alert)' }}>
               {r.roiAlavancado.toFixed(1)}%
             </p>
@@ -355,18 +375,20 @@ function Step4({ data, set, r }: { data: VendaCartaData; set: SetFn; r: Results 
             </div>
           </div>
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--text-secondary)' }}>Lucro Mensal Médio</p>
-            <p className="text-lg font-black" style={{ fontFamily: 'Montserrat', color: 'var(--gold)' }}>{fmt(r.lucroMensalMedio)}</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--text-secondary)' }}>Rent. Mensal</p>
+            <p className="text-lg font-black" style={{ fontFamily: 'Montserrat', color: 'var(--gold)' }}>
+              {r.rentabilidadeMensal.toFixed(2)}% a.m.
+            </p>
             <div className="flex items-center justify-center gap-1 mt-1">
               <CalendarDays size={12} style={{ color: 'var(--gold)' }} />
-              <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{data.mesContemplacao} meses</span>
+              <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>capital médio empregado</span>
             </div>
           </div>
         </div>
 
         <div className="flex flex-wrap justify-center gap-3 mt-8">
           <span className="px-5 py-2 rounded-full text-xs font-black" style={{ background: 'var(--gold-dim)', color: 'var(--gold)', border: '1px solid var(--border)' }}>
-            ROI: {r.roiAlavancado.toFixed(1)}%
+            {r.rentabilidadeMensal.toFixed(2)}% a.m.
           </span>
           <span className="px-5 py-2 rounded-full text-xs font-black" style={{ background: 'var(--gold-dim)', color: 'var(--gold)', border: '1px solid var(--border)' }}>
             {data.mesContemplacao} meses de espera

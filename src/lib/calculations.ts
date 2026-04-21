@@ -91,6 +91,7 @@ export interface VendaCartaResults {
   parcelaEstimadaBanco: number;
   totalEstimadoPagoBanco: number;
   economiaTotalComprador: number;
+  rentabilidadeMensal: number;
 }
 
 export function calculateVendaCarta(data: VendaCartaData): VendaCartaResults {
@@ -109,11 +110,17 @@ export function calculateVendaCarta(data: VendaCartaData): VendaCartaResults {
   const totalEstimadoPagoBanco = data.valorCredito * 2.85;
   const economiaTotalComprador = totalEstimadoPagoBanco - custoTotalComprador;
 
+  // Capital médio empregado = totalDesembolsado/2 (aportes graduais: começa em 0, termina no total)
+  const capitalMedioEmpregado = totalDesembolsado / 2;
+  const rentabilidadeMensal = capitalMedioEmpregado > 0 && data.mesContemplacao > 0
+    ? (lucroLiquido / capitalMedioEmpregado / data.mesContemplacao) * 100
+    : 0;
+
   return {
     totalComTaxa, totalDesembolsado, saldoDevedorNaContemplacao,
     lucroLiquido, roiAlavancado, lucroMensalMedio,
     custoTotalComprador, parcelaEstimadaBanco, totalEstimadoPagoBanco,
-    economiaTotalComprador,
+    economiaTotalComprador, rentabilidadeMensal,
   };
 }
 
