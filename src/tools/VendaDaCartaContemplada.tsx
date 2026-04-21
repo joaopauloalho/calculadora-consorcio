@@ -2,13 +2,13 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft, ArrowRight, Repeat2, ChevronLeft,
-  TrendingUp, TrendingDown, CalendarDays, CheckCircle2,
-  AlertCircle, RefreshCw, DollarSign, Info,
+  TrendingUp, TrendingDown, CalendarDays,
+  RefreshCw, DollarSign, Info,
 } from 'lucide-react';
 import { calculateVendaCarta, fmt, type VendaCartaData } from '../lib/calculations';
 import FunilContemplacao from '../components/FunilContemplacao';
 
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 4;
 
 const slideVariants = {
   enter: (dir: number) => ({ x: dir > 0 ? 60 : -60, opacity: 0 }),
@@ -135,7 +135,6 @@ export default function VendaDaCartaContemplada({ onBack }: Props) {
             {step === 2 && <Step2 data={data} set={set} r={r} />}
             {step === 3 && <Step3 data={data} set={set} r={r} />}
             {step === 4 && <Step4 data={data} set={set} r={r} />}
-            {step === 5 && <Step5 data={data} r={r} />}
           </motion.div>
         </AnimatePresence>
       </div>
@@ -399,75 +398,3 @@ function Step4({ data, set, r }: { data: VendaCartaData; set: SetFn; r: Results 
   );
 }
 
-function Step5({ data, r }: { data: VendaCartaData; r: Results }) {
-  const economiaPositiva = r.economiaTotalComprador > 0;
-  return (
-    <div className="space-y-8">
-      <StepHeader step={5} title="Atratividade para o Comprador" subtitle="O que o comprador da carta paga vs. o custo de um financiamento bancário convencional pelo mesmo valor." />
-
-      {/* Custo total do comprador */}
-      <div className="p-7 rounded-3xl" style={{ background: 'linear-gradient(135deg, #0D1A2E 0%, #0A1020 100%)', border: '1px solid rgba(100,150,255,0.2)' }}>
-        <p className="text-xs font-black uppercase tracking-widest mb-4" style={{ color: '#7EB0FF' }}>Custo Total do Comprador</p>
-        <div className="grid grid-cols-2 gap-4 mb-5">
-          <div>
-            <p className="text-[10px] font-bold uppercase mb-1" style={{ color: 'var(--text-secondary)' }}>Ágio pago</p>
-            <p className="text-xl font-black text-white" style={{ fontFamily: 'Montserrat' }}>{fmt(data.valorVendaChave)}</p>
-          </div>
-          <div>
-            <p className="text-[10px] font-bold uppercase mb-1" style={{ color: 'var(--text-secondary)' }}>Saldo devedor assumido</p>
-            <p className="text-xl font-black text-white" style={{ fontFamily: 'Montserrat' }}>{fmt(r.saldoDevedorNaContemplacao)}</p>
-          </div>
-        </div>
-        <div className="h-px mb-5" style={{ background: 'rgba(100,150,255,0.2)' }} />
-        <div className="flex justify-between items-center">
-          <span className="text-sm font-bold" style={{ color: '#7EB0FF' }}>Total para o comprador</span>
-          <span className="text-3xl font-black text-white" style={{ fontFamily: 'Montserrat' }}>{fmt(r.custoTotalComprador)}</span>
-        </div>
-      </div>
-
-      {/* Comparativo banco */}
-      <div className="rounded-2xl overflow-hidden border" style={{ borderColor: 'var(--border)' }}>
-        <div className="px-5 py-3" style={{ background: 'rgba(193,177,118,0.08)' }}>
-          <p className="text-xs font-black uppercase tracking-widest" style={{ color: 'var(--gold)' }}>Comparativo — Carta vs. Banco</p>
-        </div>
-        <div className="grid grid-cols-2">
-          <div className="p-6" style={{ background: '#001A0A' }}>
-            <div className="flex items-center gap-2 mb-3">
-              <CheckCircle2 size={14} style={{ color: '#00C864' }} />
-              <span className="text-xs font-bold text-white">Carta Contemplada</span>
-            </div>
-            <p className="text-3xl font-black" style={{ fontFamily: 'Montserrat', color: '#00C864' }}>{fmt(r.custoTotalComprador)}</p>
-            <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>custo total</p>
-          </div>
-          <div className="p-6 border-l" style={{ background: '#1A0005', borderColor: 'var(--border)' }}>
-            <div className="flex items-center gap-2 mb-3">
-              <AlertCircle size={14} style={{ color: 'var(--alert)' }} />
-              <span className="text-xs font-bold text-white">Banco (SAC 360m)</span>
-            </div>
-            <p className="text-3xl font-black" style={{ fontFamily: 'Montserrat', color: 'var(--alert)' }}>{fmt(r.totalEstimadoPagoBanco)}</p>
-            <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>custo total estimado</p>
-          </div>
-        </div>
-        <div className="px-5 py-4 border-t" style={{ background: 'rgba(0,0,0,0.4)', borderColor: 'var(--border)' }}>
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>Parcela inicial banco (SAC)</span>
-            <span className="font-bold text-white">{fmt(r.parcelaEstimadaBanco)}/mês</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--text-secondary)' }}>Economia do comprador</span>
-            <span className="text-xl font-black" style={{ fontFamily: 'Montserrat', color: economiaPositiva ? 'var(--gold)' : 'var(--alert)' }}>
-              {fmt(r.economiaTotalComprador)}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <div className="p-5 rounded-2xl border text-sm" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>
-        <Info size={14} className="inline mr-2" style={{ color: 'var(--gold)' }} />
-        O comprador obtém um crédito de <strong style={{ color: 'white' }}>{fmt(data.valorCredito)}</strong> pagando{' '}
-        <strong style={{ color: '#00C864' }}>{fmt(r.custoTotalComprador)}</strong> — uma economia de{' '}
-        <strong style={{ color: 'var(--gold)' }}>{fmt(r.economiaTotalComprador)}</strong> vs. financiamento bancário.
-      </div>
-    </div>
-  );
-}
