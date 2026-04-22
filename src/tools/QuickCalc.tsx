@@ -402,7 +402,7 @@ export default function QuickCalc({ onBack }: Props) {
             <ResultCard
               label="Total Investido até a Contemplação"
               value={fmt(r.totalInvestido)}
-              sub={`${data.mesContemplacao} meses × ${fmt(parcelaAtualBase)}${data.comSeguro ? ' + seguro' : ''}`}
+              sub={`${data.mesContemplacao} meses × ${fmt(r.parcelaEfetivaPreContemp)}${data.comSeguro ? ' (c/ seguro)' : ''}`}
               gold
             />
 

@@ -215,6 +215,7 @@ export interface QuickCalcResults {
   parcelaCheiaOriginal: number;
   meiaParcela: number;
   saldoDevedorContemplacao: number;
+  parcelaEfetivaPreContemp: number;
   totalInvestido: number;
   parcelaNova: number;
   valorVenda: number;
@@ -241,15 +242,20 @@ export function calculateQuickCalc(data: QuickCalcData): QuickCalcResults {
 
   const parcelasPagas = data.mesContemplacao * parcelaAtual;
   const avgSaldo = (totalComTaxa + saldoDevedorContemplacao) / 2;
+  const seguroMensalMedio = avgSaldo * seguroPercent;
   const seguroPreContemp = data.comSeguro
-    ? avgSaldo * seguroPercent * data.mesContemplacao
+    ? seguroMensalMedio * data.mesContemplacao
     : 0;
   const totalInvestido = parcelasPagas + seguroPreContemp;
+
+  // Parcela efetiva pré-contemplação (base + seguro médio se habilitado)
+  const parcelaEfetivaPreContemp = parcelaAtual + (data.comSeguro ? seguroMensalMedio : 0);
 
   // Pós-contemplação: sempre parcela cheia + seguro sempre obrigatório
   const parcelaNova = parcelaCheiaOriginal + saldoDevedorContemplacao * seguroPercent;
 
-  const valorVenda = data.valorCredito * (1 + data.percentAgio / 100);
+  // Ágio = % sobre o valor do crédito (o que o vendedor recebe)
+  const valorVenda = data.valorCredito * (data.percentAgio / 100);
   const lucroLiquido = valorVenda - totalInvestido;
   const capitalMedioEmpregado = totalInvestido / 2;
   const rentabilidadeMensal =
@@ -259,7 +265,8 @@ export function calculateQuickCalc(data: QuickCalcData): QuickCalcResults {
 
   return {
     taxaAdm, seguroPercent, totalComTaxa, parcelaCheiaOriginal,
-    meiaParcela, saldoDevedorContemplacao, totalInvestido, parcelaNova,
+    meiaParcela, saldoDevedorContemplacao, parcelaEfetivaPreContemp,
+    totalInvestido, parcelaNova,
     valorVenda, lucroLiquido, capitalMedioEmpregado, rentabilidadeMensal,
   };
 }
