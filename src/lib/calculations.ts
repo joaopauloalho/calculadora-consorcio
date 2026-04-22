@@ -179,6 +179,73 @@ export function calculateAluguel(data: AluguelData): AluguelResults {
   };
 }
 
+export interface QuitacaoData {
+  saldoDevedorBanco: number;
+  parcelaBanco: number;
+  prazoRestanteBanco: number;
+  valorCredito: number;
+  taxaAdm: number;
+  prazoConsorcio: number;
+  mesContemplacao: number;
+}
+
+export interface QuitacaoResults {
+  custoTotalBanco: number;
+  jurosTotaisBanco: number;
+  totalComTaxaConsorcio: number;
+  parcelaCheiaConsorcio: number;
+  meiaParcela: number;
+  saldoDevedorConsorcioContemplacao: number;
+  custoSobreposicaoMensal: number;
+  totalOverlapBanco: number;
+  totalOverlapConsorcio: number;
+  parcelasRestantesConsorcio: number;
+  custoAposContemplacao: number;
+  custoTotalConsorcio: number;
+  economiaNominal: number;
+  mesesDividaBanco: number;
+  mesesDividaConsorcio: number;
+  tempoEliminado: number;
+  creditoCobre: boolean;
+}
+
+export function calculateQuitacao(data: QuitacaoData): QuitacaoResults {
+  const custoTotalBanco = data.parcelaBanco * data.prazoRestanteBanco;
+  const jurosTotaisBanco = Math.max(0, custoTotalBanco - data.saldoDevedorBanco);
+
+  const totalComTaxaConsorcio = data.valorCredito * (1 + data.taxaAdm);
+  const parcelaCheiaConsorcio = totalComTaxaConsorcio / data.prazoConsorcio;
+  const meiaParcela = parcelaCheiaConsorcio / 2;
+
+  const saldoDevedorConsorcioContemplacao = Math.max(0, totalComTaxaConsorcio - data.mesContemplacao * meiaParcela);
+
+  const custoSobreposicaoMensal = data.parcelaBanco + meiaParcela;
+  const totalOverlapBanco = data.mesContemplacao * data.parcelaBanco;
+  const totalOverlapConsorcio = data.mesContemplacao * meiaParcela;
+
+  const parcelasRestantesConsorcio = Math.max(0, data.prazoConsorcio - data.mesContemplacao);
+  const custoAposContemplacao = parcelasRestantesConsorcio * parcelaCheiaConsorcio;
+
+  const custoTotalConsorcio = totalOverlapBanco + totalOverlapConsorcio + custoAposContemplacao;
+  const economiaNominal = custoTotalBanco - custoTotalConsorcio;
+
+  const mesesDividaBanco = data.prazoRestanteBanco;
+  const mesesDividaConsorcio = data.prazoConsorcio;
+  const tempoEliminado = mesesDividaBanco - mesesDividaConsorcio;
+  const creditoCobre = data.valorCredito >= data.saldoDevedorBanco;
+
+  return {
+    custoTotalBanco, jurosTotaisBanco,
+    totalComTaxaConsorcio, parcelaCheiaConsorcio, meiaParcela,
+    saldoDevedorConsorcioContemplacao,
+    custoSobreposicaoMensal, totalOverlapBanco, totalOverlapConsorcio,
+    parcelasRestantesConsorcio, custoAposContemplacao,
+    custoTotalConsorcio, economiaNominal,
+    mesesDividaBanco, mesesDividaConsorcio, tempoEliminado,
+    creditoCobre,
+  };
+}
+
 export function contemplationProbability(
   month: number,
   prazoTotal: number,

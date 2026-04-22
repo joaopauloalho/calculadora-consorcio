@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Building2, TrendingUp, Repeat2, Landmark, ArrowLeft, Lock } from 'lucide-react';
+import { Building2, TrendingUp, TrendingDown, Repeat2, Landmark, ArrowLeft, Lock } from 'lucide-react';
 
 type Path = 'acquisition' | 'return';
 
@@ -49,6 +49,17 @@ const allTools = [
     icon: TrendingUp,
     title: 'Carta Aplicada',
     description: 'Contemple e deixe o crédito render no CDI enquanto paga as parcelas. Veja o saldo líquido mês a mês.',
+    tag: 'Disponível',
+    active: true,
+    color: 'var(--alert)',
+    colorBg: 'rgba(204,51,102,0.12)',
+  },
+  {
+    id: 5,
+    path: 'acquisition' as Path,
+    icon: TrendingDown,
+    title: 'Quitação de Financiamento',
+    description: 'Substitua um financiamento bancário por consórcio. Compare o custo total e veja quanto você economiza em juros.',
     tag: 'Disponível',
     active: true,
     color: 'var(--alert)',
