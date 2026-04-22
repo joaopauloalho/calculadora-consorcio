@@ -62,7 +62,7 @@ const card = {
 };
 
 export default function MatrixScreen({ path, onSelect, onBack }: Props) {
-  const label = path === 'acquisition' ? 'Comprar ou Construir' : 'Vender ou Aplicar';
+  const label = path === 'acquisition' ? 'Com Aquisição' : 'Sem Aquisição';
   const tools = allTools.filter((t) => t.path === path);
 
   return (

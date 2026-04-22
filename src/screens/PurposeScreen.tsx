@@ -27,7 +27,7 @@ const cards = [
     id: 'acquisition' as Purpose,
     iconEl: <Building2 size={28} style={{ color: 'var(--gold)' }} />,
     iconBg: 'var(--gold-dim)' as string,
-    title: 'Comprar ou\nConstruir',
+    title: 'Com\nAquisição',
     description:
       'Use o crédito para adquirir terreno e construir para venda, ou comprar um imóvel e gerar renda com aluguel. Patrimônio real com consórcio.',
     cta: 'Explorar estratégias',
@@ -37,7 +37,7 @@ const cards = [
     id: 'return' as Purpose,
     iconEl: <TrendingUp size={28} style={{ color: 'var(--alert)' }} />,
     iconBg: 'rgba(204,51,102,0.15)' as string,
-    title: 'Vender ou\nAplicar',
+    title: 'Sem\nAquisição',
     description:
       'Lucre na contemplação: venda a carta com ágio ou deixe o crédito crescer no CDI enquanto paga as parcelas. Retorno sem imobilizar capital.',
     cta: 'Explorar estratégias',
