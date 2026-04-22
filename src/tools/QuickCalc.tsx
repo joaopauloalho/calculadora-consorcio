@@ -298,6 +298,7 @@ export default function QuickCalc({ onBack }: Props) {
                 </p>
                 <input
                   type="number"
+                  inputMode="numeric"
                   placeholder={`Máx. ${data.assetType === 'imovel' ? 220 : 120} meses`}
                   value={customPrazoStr}
                   onChange={(e) => handleCustomPrazo(e.target.value)}
@@ -410,6 +411,7 @@ export default function QuickCalc({ onBack }: Props) {
                     <Label>Ágio sobre o crédito (%)</Label>
                     <input
                       type="number"
+                      inputMode="decimal"
                       value={data.percentAgio === 0 ? '' : data.percentAgio}
                       onChange={(e) =>
                         set('percentAgio')(

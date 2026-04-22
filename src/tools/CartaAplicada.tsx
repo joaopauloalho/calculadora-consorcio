@@ -194,6 +194,7 @@ export default function CartaAplicada({ onBack }: Props) {
               <Label>Taxa Selic Atual (% a.a.)</Label>
               <input
                 type="number"
+                inputMode="decimal"
                 step="0.25"
                 value={data.selicAnual === 0 ? '' : data.selicAnual}
                 onChange={(e) => set('selicAnual')(e.target.value === '' ? 0 : Number(e.target.value))}
@@ -236,6 +237,7 @@ export default function CartaAplicada({ onBack }: Props) {
                 </p>
                 <input
                   type="number"
+                  inputMode="numeric"
                   placeholder={`Máx. ${data.assetType === 'imovel' ? 220 : 120} meses`}
                   value={customPrazoStr}
                   onChange={(e) => handleCustomPrazo(e.target.value)}
