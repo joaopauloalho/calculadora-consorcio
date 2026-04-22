@@ -194,6 +194,87 @@ export function contemplationProbability(
 export const fmt = (v: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
 
+export interface CartaAplicadaData {
+  assetType: AssetType;
+  valorCredito: number;
+  prazoTotal: number;
+  mesContemplacao: number;
+  selicAnual: number;
+  paymentMode: PaymentMode;
+  comSeguro: boolean;
+  mesAnalise: number;
+}
+
+export interface CartaAplicadaResults {
+  taxaAdm: number;
+  seguroPercent: number;
+  totalComTaxa: number;
+  parcelaCheia: number;
+  meiaParcela: number;
+  saldoDevedorContemplacao: number;
+  seguroMensalMedioPreContemp: number;
+  parcelaEfetivaPreContemp: number;
+  totalPagoPreContemp: number;
+  correcaoAnual: number;
+  correcaoIndice: string;
+  creditoNaContemplacao: number;
+  cdiAnual: number;
+  cdiMensal: number;
+  creditoNoMesAnalise: number;
+  parcelaPosContemp: number;
+  totalPagoPosContemp: number;
+  totalPagoGeral: number;
+  saldoLiquido: number;
+  rentabilidadeMensal: number;
+}
+
+export function calculateCartaAplicada(data: CartaAplicadaData): CartaAplicadaResults {
+  const taxaAdm = data.assetType === 'imovel' ? 0.23 : data.prazoTotal <= 48 ? 0.085 : 0.16;
+  const seguroPercent = data.assetType === 'imovel' ? 0.000555 : 0.000888;
+
+  const totalComTaxa = data.valorCredito * (1 + taxaAdm);
+  const parcelaCheia = totalComTaxa / data.prazoTotal;
+  const meiaParcela = parcelaCheia / 2;
+  const parcelaPreContemp = data.paymentMode === 'meia' ? meiaParcela : parcelaCheia;
+
+  const saldoDevedorContemplacao = Math.max(0, totalComTaxa - data.mesContemplacao * parcelaPreContemp);
+
+  const avgSaldoPreContemp = (totalComTaxa + saldoDevedorContemplacao) / 2;
+  const seguroMensalMedioPreContemp = avgSaldoPreContemp * seguroPercent;
+  const seguroTotalPreContemp = data.comSeguro ? seguroMensalMedioPreContemp * data.mesContemplacao : 0;
+  const totalPagoPreContemp = data.mesContemplacao * parcelaPreContemp + seguroTotalPreContemp;
+  const parcelaEfetivaPreContemp = parcelaPreContemp + (data.comSeguro ? seguroMensalMedioPreContemp : 0);
+
+  const correcaoAnual = data.assetType === 'imovel' ? 0.05 : 0.04;
+  const correcaoIndice = data.assetType === 'imovel' ? 'INCC' : 'IPCA';
+  const creditoNaContemplacao = data.valorCredito * Math.pow(1 + correcaoAnual, data.mesContemplacao / 12);
+
+  const cdiAnual = (data.selicAnual / 100) * 0.95;
+  const cdiMensal = Math.pow(1 + cdiAnual, 1 / 12) - 1;
+  const creditoNoMesAnalise = creditoNaContemplacao * Math.pow(1 + cdiMensal, data.mesAnalise);
+
+  const parcelaPosContemp = parcelaCheia + saldoDevedorContemplacao * seguroPercent;
+  const totalPagoPosContemp = data.mesAnalise * parcelaPosContemp;
+  const totalPagoGeral = totalPagoPreContemp + totalPagoPosContemp;
+
+  const saldoLiquido = creditoNoMesAnalise - totalPagoGeral;
+  const totalMeses = data.mesContemplacao + data.mesAnalise;
+  const capitalMedioEmpregado = totalPagoGeral / 2;
+  const rentabilidadeMensal =
+    capitalMedioEmpregado > 0 && totalMeses > 0
+      ? (saldoLiquido / capitalMedioEmpregado / totalMeses) * 100
+      : 0;
+
+  return {
+    taxaAdm, seguroPercent, totalComTaxa, parcelaCheia, meiaParcela,
+    saldoDevedorContemplacao, seguroMensalMedioPreContemp, parcelaEfetivaPreContemp,
+    totalPagoPreContemp, correcaoAnual, correcaoIndice, creditoNaContemplacao,
+    cdiAnual, cdiMensal, creditoNoMesAnalise,
+    parcelaPosContemp, totalPagoPosContemp, totalPagoGeral,
+    saldoLiquido, rentabilidadeMensal,
+  };
+}
+
 export type AssetType = 'imovel' | 'veiculo';
 export type PaymentMode = 'meia' | 'cheia';
 

@@ -5,6 +5,7 @@ import MatrixScreen from './screens/MatrixScreen';
 import CompraeConstrucao from './tools/CompraeConstrucao';
 import VendaDaCartaContemplada from './tools/VendaDaCartaContemplada';
 import AluguelConsorcio from './tools/AluguelConsorcio';
+import CartaAplicada from './tools/CartaAplicada';
 import QuickCalc from './tools/QuickCalc';
 
 type View = 'purpose' | 'matrix' | 'tool' | 'quickcalc';
@@ -74,6 +75,12 @@ export default function App() {
       {view === 'tool' && tool === 3 && (
         <motion.div key="tool-3" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}>
           <AluguelConsorcio onBack={() => setView('matrix')} />
+        </motion.div>
+      )}
+
+      {view === 'tool' && tool === 4 && (
+        <motion.div key="tool-4" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}>
+          <CartaAplicada onBack={() => setView('matrix')} />
         </motion.div>
       )}
     </AnimatePresence>

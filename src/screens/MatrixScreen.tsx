@@ -43,12 +43,12 @@ const tools = [
   {
     id: 4,
     icon: TrendingUp,
-    title: 'Rentabilidade Pura',
-    description: 'Operações de curto prazo focadas em retorno financeiro. Sem aquisição de imóvel.',
-    tag: 'Em breve',
-    active: false,
-    color: '#A0A0A0',
-    colorBg: 'rgba(160,160,160,0.08)',
+    title: 'Carta Aplicada',
+    description: 'Simule o crédito contemplado rendendo a 95% do CDI. Veja em qual mês o rendimento supera o total pago.',
+    tag: 'Disponível',
+    active: true,
+    color: 'var(--alert)',
+    colorBg: 'rgba(204,51,102,0.12)',
   },
 ];
 
