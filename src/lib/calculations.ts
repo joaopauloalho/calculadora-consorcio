@@ -249,7 +249,7 @@ export function calculateCartaAplicada(data: CartaAplicadaData): CartaAplicadaRe
   const correcaoIndice = data.assetType === 'imovel' ? 'INCC' : 'IPCA';
   const creditoNaContemplacao = data.valorCredito * Math.pow(1 + correcaoAnual, data.mesContemplacao / 12);
 
-  const cdiAnual = (data.selicAnual / 100) * 0.95;
+  const cdiAnual = (data.selicAnual - 0.10) / 100;
   const cdiMensal = Math.pow(1 + cdiAnual, 1 / 12) - 1;
   const creditoNoMesAnalise = creditoNaContemplacao * Math.pow(1 + cdiMensal, data.mesAnalise);
 

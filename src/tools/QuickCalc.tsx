@@ -8,6 +8,7 @@ import {
   calculateQuickCalc, fmt,
   type QuickCalcData,
 } from '../lib/calculations';
+import BRLInput from '../components/BRLInput';
 
 const IMOVEL_PRAZOS = [220];
 const VEICULO_PRAZOS = [48, 100, 120];
@@ -259,13 +260,7 @@ export default function QuickCalc({ onBack }: Props) {
             {/* Credit value */}
             <div>
               <Label>Valor do Crédito (R$)</Label>
-              <input
-                type="number"
-                value={data.valorCredito === 0 ? '' : data.valorCredito}
-                onChange={(e) =>
-                  set('valorCredito')(e.target.value === '' ? 0 : Number(e.target.value))
-                }
-              />
+              <BRLInput value={data.valorCredito} onChange={set('valorCredito')} />
             </div>
 
             {/* Prazo */}

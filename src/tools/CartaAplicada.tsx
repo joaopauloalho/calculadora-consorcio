@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, Home, Car, Shield, TrendingUp, ToggleLeft, ToggleRight } from 'lucide-react';
 import { calculateCartaAplicada, fmt, type CartaAplicadaData } from '../lib/calculations';
+import BRLInput from '../components/BRLInput';
 
 const IMOVEL_PRAZOS = [220];
 const VEICULO_PRAZOS = [48, 100, 120];
@@ -186,11 +187,7 @@ export default function CartaAplicada({ onBack }: Props) {
 
             <div>
               <Label>Valor do Crédito (R$)</Label>
-              <input
-                type="number"
-                value={data.valorCredito === 0 ? '' : data.valorCredito}
-                onChange={(e) => set('valorCredito')(e.target.value === '' ? 0 : Number(e.target.value))}
-              />
+              <BRLInput value={data.valorCredito} onChange={set('valorCredito')} />
             </div>
 
             <div>
@@ -360,7 +357,7 @@ export default function CartaAplicada({ onBack }: Props) {
                 <AnimatedValue value={fmt(r.creditoNoMesAnalise)} />
               </p>
               <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                Crescendo {(r.cdiMensal * 100).toFixed(3)}% a.m. (95% CDI)
+                Crescendo {(r.cdiMensal * 100).toFixed(3)}% a.m. (CDI = Selic − 0,10%)
               </p>
             </div>
 
