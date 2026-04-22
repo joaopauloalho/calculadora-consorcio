@@ -469,37 +469,19 @@ export default function QuickCalc({ onBack }: Props) {
                     style={{ background: 'rgba(193,177,118,0.15)' }}
                   />
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p
-                        className="text-[10px] font-bold uppercase tracking-widest mb-1"
-                        style={{ color: 'var(--text-secondary)' }}
-                      >
-                        ROI Total
-                      </p>
-                      <p
-                        className="text-lg font-black text-white"
-                        style={{ fontFamily: 'Montserrat' }}
-                      >
-                        <AnimatedValue value={`${r.totalInvestido > 0 ? (r.lucroLiquido / r.totalInvestido * 100).toFixed(1) : '0.0'}%`} />
-                      </p>
-                    </div>
-                    <div>
-                      <p
-                        className="text-[10px] font-bold uppercase tracking-widest mb-1"
-                        style={{ color: 'var(--text-secondary)' }}
-                      >
-                        Rent. Mensal
-                      </p>
-                      <p
-                        className="text-lg font-black"
-                        style={{ fontFamily: 'Montserrat', color: 'var(--gold)' }}
-                      >
-                        <AnimatedValue
-                          value={`${r.rentabilidadeMensal.toFixed(2)}% a.m.`}
-                        />
-                      </p>
-                    </div>
+                  <div>
+                    <p
+                      className="text-[10px] font-bold uppercase tracking-widest mb-1"
+                      style={{ color: 'var(--text-secondary)' }}
+                    >
+                      Rentabilidade Mensal
+                    </p>
+                    <p
+                      className="text-2xl font-black"
+                      style={{ fontFamily: 'Montserrat', color: 'var(--gold)' }}
+                    >
+                      <AnimatedValue value={`${r.rentabilidadeMensal.toFixed(2)}% a.m.`} />
+                    </p>
                   </div>
                 </motion.div>
               )}
