@@ -9,12 +9,13 @@ interface Props {
   onBack: () => void;
 }
 
-const tools = [
+const allTools = [
   {
     id: 1,
+    path: 'acquisition' as Path,
     icon: Building2,
     title: 'Compra e Construção',
-    description: 'Simule a alavancagem completa: adquira o terreno, construa e venda com lucro usando crédito de consórcio.',
+    description: 'Adquira o terreno, construa e venda com lucro. Simule a alavancagem completa usando crédito de consórcio.',
     tag: 'Disponível',
     active: true,
     color: 'var(--gold)',
@@ -22,16 +23,18 @@ const tools = [
   },
   {
     id: 2,
+    path: 'return' as Path,
     icon: Repeat2,
     title: 'Giro de Cartas',
-    description: 'Compre cartas com deságio, venda contempladas com ágio. Operação de curto prazo sem imobilização.',
+    description: 'Compre cartas com deságio, venda contempladas com ágio. Operação de curto prazo sem imobilização de capital.',
     tag: 'Disponível',
     active: true,
-    color: 'var(--gold)',
-    colorBg: 'var(--gold-dim)',
+    color: 'var(--alert)',
+    colorBg: 'rgba(204,51,102,0.12)',
   },
   {
     id: 3,
+    path: 'acquisition' as Path,
     icon: Landmark,
     title: 'Aluguel com Consórcio',
     description: 'Use o crédito para adquirir e alugar. Calcule fluxo mensal, replicação automática e patrimônio final.',
@@ -42,9 +45,10 @@ const tools = [
   },
   {
     id: 4,
+    path: 'return' as Path,
     icon: TrendingUp,
     title: 'Carta Aplicada',
-    description: 'Simule o crédito contemplado rendendo a 95% do CDI. Veja em qual mês o rendimento supera o total pago.',
+    description: 'Contemple e deixe o crédito render no CDI enquanto paga as parcelas. Veja o saldo líquido mês a mês.',
     tag: 'Disponível',
     active: true,
     color: 'var(--alert)',
@@ -58,7 +62,8 @@ const card = {
 };
 
 export default function MatrixScreen({ path, onSelect, onBack }: Props) {
-  const label = path === 'acquisition' ? 'Adquirir um Bem' : 'Rentabilidade Pura';
+  const label = path === 'acquisition' ? 'Comprar ou Construir' : 'Vender ou Aplicar';
+  const tools = allTools.filter((t) => t.path === path);
 
   return (
     <div className="min-h-screen bg-black px-6 py-12">

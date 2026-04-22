@@ -27,20 +27,20 @@ const cards = [
     id: 'acquisition' as Purpose,
     iconEl: <Building2 size={28} style={{ color: 'var(--gold)' }} />,
     iconBg: 'var(--gold-dim)' as string,
-    title: 'Alavancagem\nPatrimonial',
+    title: 'Comprar ou\nConstruir',
     description:
-      'Construa, compre e alugue usando crédito de consórcio a custo baixo. A estratégia completa de crescimento patrimonial.',
-    cta: 'Explorar ferramentas',
+      'Use o crédito para adquirir terreno e construir para venda, ou comprar um imóvel e gerar renda com aluguel. Patrimônio real com consórcio.',
+    cta: 'Explorar estratégias',
     ctaColor: 'var(--gold)' as string,
   },
   {
     id: 'return' as Purpose,
     iconEl: <TrendingUp size={28} style={{ color: 'var(--alert)' }} />,
     iconBg: 'rgba(204,51,102,0.15)' as string,
-    title: 'Rentabilidade\nPura',
+    title: 'Vender ou\nAplicar',
     description:
-      'Use o consórcio como ativo financeiro. Venda cartas contempladas com ágio e lucre sem imobilizar capital.',
-    cta: 'Explorar ferramentas',
+      'Lucre na contemplação: venda a carta com ágio ou deixe o crédito crescer no CDI enquanto paga as parcelas. Retorno sem imobilizar capital.',
+    cta: 'Explorar estratégias',
     ctaColor: 'var(--alert)' as string,
   },
 ];
