@@ -284,8 +284,8 @@ export default function QuickCalc({ onBack }: Props) {
               <Label>Modalidade de Pagamento</Label>
               <div className="grid grid-cols-2 gap-3">
                 {([
-                  { mode: 'meia' as const, label: 'Meia Parcela', value: fmt(r.meiaParcela) },
-                  { mode: 'cheia' as const, label: 'Parcela Inteira', value: fmt(r.parcelaCheiaOriginal) },
+                  { mode: 'meia' as const, label: 'Meia Parcela', value: fmt(r.meiaParcela + (data.comSeguro ? r.seguroMensalMedio : 0)) },
+                  { mode: 'cheia' as const, label: 'Parcela Inteira', value: fmt(r.parcelaCheiaOriginal + (data.comSeguro ? r.seguroMensalMedio : 0)) },
                 ] as const).map(({ mode, label, value }) => (
                   <button
                     key={mode}
@@ -475,13 +475,13 @@ export default function QuickCalc({ onBack }: Props) {
                         className="text-[10px] font-bold uppercase tracking-widest mb-1"
                         style={{ color: 'var(--text-secondary)' }}
                       >
-                        Capital Médio
+                        ROI Total
                       </p>
                       <p
                         className="text-lg font-black text-white"
                         style={{ fontFamily: 'Montserrat' }}
                       >
-                        <AnimatedValue value={fmt(r.capitalMedioEmpregado)} />
+                        <AnimatedValue value={`${r.totalInvestido > 0 ? (r.lucroLiquido / r.totalInvestido * 100).toFixed(1) : '0.0'}%`} />
                       </p>
                     </div>
                     <div>

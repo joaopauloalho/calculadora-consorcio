@@ -211,6 +211,7 @@ export interface QuickCalcData {
 export interface QuickCalcResults {
   taxaAdm: number;
   seguroPercent: number;
+  seguroMensalMedio: number;
   totalComTaxa: number;
   parcelaCheiaOriginal: number;
   meiaParcela: number;
@@ -264,7 +265,7 @@ export function calculateQuickCalc(data: QuickCalcData): QuickCalcResults {
       : 0;
 
   return {
-    taxaAdm, seguroPercent, totalComTaxa, parcelaCheiaOriginal,
+    taxaAdm, seguroPercent, seguroMensalMedio, totalComTaxa, parcelaCheiaOriginal,
     meiaParcela, saldoDevedorContemplacao, parcelaEfetivaPreContemp,
     totalInvestido, parcelaNova,
     valorVenda, lucroLiquido, capitalMedioEmpregado, rentabilidadeMensal,
