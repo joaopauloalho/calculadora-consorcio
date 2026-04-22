@@ -9,7 +9,7 @@ import {
   type QuickCalcData,
 } from '../lib/calculations';
 
-const IMOVEL_PRAZOS = [60, 80, 100, 120, 150, 180];
+const IMOVEL_PRAZOS = [220];
 const VEICULO_PRAZOS = [48, 100, 120];
 
 interface Props {
@@ -134,7 +134,7 @@ export default function QuickCalc({ onBack }: Props) {
   const [data, setData] = useState<QuickCalcData>({
     assetType: 'imovel',
     valorCredito: 500000,
-    prazoTotal: 120,
+    prazoTotal: 220,
     comSeguro: false,
     paymentMode: 'meia',
     mesContemplacao: 24,
@@ -146,7 +146,7 @@ export default function QuickCalc({ onBack }: Props) {
     (v: QuickCalcData[K]) => setData((d) => ({ ...d, [key]: v }));
 
   const setAssetType = (type: QuickCalcData['assetType']) => {
-    const defaultPrazo = type === 'imovel' ? 120 : 48;
+    const defaultPrazo = type === 'imovel' ? 220 : 48;
     setData((d) => ({
       ...d,
       assetType: type,
