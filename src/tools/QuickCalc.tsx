@@ -141,12 +141,14 @@ export default function QuickCalc({ onBack }: Props) {
     venderComLucro: false,
     percentAgio: 20,
   });
+  const [customPrazoStr, setCustomPrazoStr] = useState('');
 
   const set = <K extends keyof QuickCalcData>(key: K) =>
     (v: QuickCalcData[K]) => setData((d) => ({ ...d, [key]: v }));
 
   const setAssetType = (type: QuickCalcData['assetType']) => {
     const defaultPrazo = type === 'imovel' ? 220 : 48;
+    setCustomPrazoStr('');
     setData((d) => ({
       ...d,
       assetType: type,
@@ -156,11 +158,24 @@ export default function QuickCalc({ onBack }: Props) {
   };
 
   const setPrazo = (prazo: number) => {
+    setCustomPrazoStr('');
     setData((d) => ({
       ...d,
       prazoTotal: prazo,
       mesContemplacao: Math.min(d.mesContemplacao, prazo),
     }));
+  };
+
+  const handleCustomPrazo = (val: string) => {
+    setCustomPrazoStr(val);
+    const n = parseInt(val);
+    if (n > 0) {
+      setData((d) => ({
+        ...d,
+        prazoTotal: n,
+        mesContemplacao: Math.min(d.mesContemplacao, n),
+      }));
+    }
   };
 
   const r = calculateQuickCalc(data);
@@ -277,6 +292,23 @@ export default function QuickCalc({ onBack }: Props) {
                 {'  ·  '}Parcela cheia:{' '}
                 <strong style={{ color: 'white' }}>{fmt(r.parcelaCheiaOriginal)}</strong>
               </p>
+
+              {/* Grupo em andamento */}
+              <div className="mt-3">
+                <p className="text-xs font-bold uppercase tracking-widest mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+                  Grupo em andamento?
+                </p>
+                <input
+                  type="number"
+                  placeholder="Insira as parcelas restantes"
+                  value={customPrazoStr}
+                  onChange={(e) => handleCustomPrazo(e.target.value)}
+                  style={{ marginBottom: 0 }}
+                />
+                <p className="text-[11px] mt-1.5" style={{ color: 'rgba(160,160,160,0.5)' }}>
+                  Se o grupo já iniciou, informe quantas parcelas ainda faltam.
+                </p>
+              </div>
             </div>
 
             {/* Payment mode */}
