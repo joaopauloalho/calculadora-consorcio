@@ -219,6 +219,9 @@ export interface QuickCalcResults {
   parcelaEfetivaPreContemp: number;
   totalInvestido: number;
   parcelaNova: number;
+  creditoAtualizado: number;
+  correcaoAnual: number;
+  correcaoIndice: string;
   valorVenda: number;
   lucroLiquido: number;
   capitalMedioEmpregado: number;
@@ -255,6 +258,11 @@ export function calculateQuickCalc(data: QuickCalcData): QuickCalcResults {
   // Pós-contemplação: sempre parcela cheia + seguro sempre obrigatório
   const parcelaNova = parcelaCheiaOriginal + saldoDevedorContemplacao * seguroPercent;
 
+  // Crédito atualizado na contemplação (INCC 5% a.a. imóvel / IPCA 4% a.a. veículo)
+  const correcaoAnual = data.assetType === 'imovel' ? 0.05 : 0.04;
+  const correcaoIndice = data.assetType === 'imovel' ? 'INCC' : 'IPCA';
+  const creditoAtualizado = data.valorCredito * Math.pow(1 + correcaoAnual, data.mesContemplacao / 12);
+
   // Ágio = % sobre o valor do crédito (o que o vendedor recebe)
   const valorVenda = data.valorCredito * (data.percentAgio / 100);
   const lucroLiquido = valorVenda - totalInvestido;
@@ -268,6 +276,7 @@ export function calculateQuickCalc(data: QuickCalcData): QuickCalcResults {
     taxaAdm, seguroPercent, seguroMensalMedio, totalComTaxa, parcelaCheiaOriginal,
     meiaParcela, saldoDevedorContemplacao, parcelaEfetivaPreContemp,
     totalInvestido, parcelaNova,
+    creditoAtualizado, correcaoAnual, correcaoIndice,
     valorVenda, lucroLiquido, capitalMedioEmpregado, rentabilidadeMensal,
   };
 }

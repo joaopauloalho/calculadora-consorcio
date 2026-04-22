@@ -457,6 +457,31 @@ export default function QuickCalc({ onBack }: Props) {
               </div>
             </div>
 
+            <div
+              className="p-4 rounded-2xl border"
+              style={{ background: 'rgba(193,177,118,0.06)', borderColor: 'rgba(193,177,118,0.2)' }}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--text-secondary)' }}>
+                    Crédito Atualizado na Contemplação
+                  </p>
+                  <p className="text-xl font-black" style={{ fontFamily: 'Montserrat', color: 'var(--gold)' }}>
+                    <AnimatedValue value={fmt(r.creditoAtualizado)} />
+                  </p>
+                </div>
+                <span
+                  className="text-[10px] font-black px-2 py-1 rounded-lg shrink-0 mt-0.5"
+                  style={{ background: 'rgba(193,177,118,0.15)', color: 'var(--gold)' }}
+                >
+                  {r.correcaoIndice} {(r.correcaoAnual * 100).toFixed(0)}% a.a.
+                </span>
+              </div>
+              <p className="text-[11px] mt-1.5" style={{ color: 'rgba(160,160,160,0.5)' }}>
+                Valor real do crédito no mês {data.mesContemplacao}, corrigido pelo {r.correcaoIndice}
+              </p>
+            </div>
+
             {/* Profit panel */}
             <AnimatePresence>
               {data.venderComLucro && (
