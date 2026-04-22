@@ -170,10 +170,13 @@ export default function QuickCalc({ onBack }: Props) {
     setCustomPrazoStr(val);
     const n = parseInt(val);
     if (n > 0) {
+      const maxPrazo = data.assetType === 'imovel' ? 220 : 120;
+      const clamped = Math.min(n, maxPrazo);
+      setCustomPrazoStr(String(clamped));
       setData((d) => ({
         ...d,
-        prazoTotal: n,
-        mesContemplacao: Math.min(d.mesContemplacao, n),
+        prazoTotal: clamped,
+        mesContemplacao: Math.min(d.mesContemplacao, clamped),
       }));
     }
   };
@@ -300,7 +303,7 @@ export default function QuickCalc({ onBack }: Props) {
                 </p>
                 <input
                   type="number"
-                  placeholder="Insira as parcelas restantes"
+                  placeholder={`Máx. ${data.assetType === 'imovel' ? 220 : 120} meses`}
                   value={customPrazoStr}
                   onChange={(e) => handleCustomPrazo(e.target.value)}
                   style={{ marginBottom: 0 }}
