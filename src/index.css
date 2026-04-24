@@ -2,27 +2,44 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap');
+
 :root {
-  --gold: #C1B176;
-  --gold-light: #D4C89A;
-  --gold-dim: rgba(193, 177, 118, 0.15);
-  --bg-black: #000000;
-  --bg-dark: #212121;
-  --bg-card: #1A1A1A;
-  --bg-card-hover: #242424;
-  --alert: #CC3366;
-  --text-primary: #FFFFFF;
-  --text-secondary: #A0A0A0;
-  --border: rgba(193, 177, 118, 0.2);
+  /* Prestige brand palette */
+  --gold: #C9A84C;
+  --gold-light: #DFC070;
+  --gold-dim: rgba(201, 168, 76, 0.13);
+  --gold-border: rgba(201, 168, 76, 0.22);
+
+  /* Verde Prestige */
+  --bg-black: #031715;
+  --bg-dark: #041E1A;
+  --bg-card: #071F1B;
+  --bg-card-hover: #0D2E28;
+
+  /* Teal accent — "Sem Aquisição" path */
+  --alert: #5EB9AA;
+  --alert-dim: rgba(94, 185, 170, 0.13);
+  --alert-border: rgba(94, 185, 170, 0.22);
+
+  /* Text — Branco Prestige */
+  --text-primary: #F7F8FD;
+  --text-secondary: rgba(247, 248, 253, 0.5);
+
+  /* Borders */
+  --border: rgba(201, 168, 76, 0.18);
 }
 
 * { box-sizing: border-box; }
 
 body {
   background-color: var(--bg-black);
+  background-image:
+    radial-gradient(ellipse 140% 55% at 50% -5%, rgba(20, 80, 65, 0.55) 0%, transparent 65%);
   color: var(--text-primary);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: 'Montserrat', sans-serif;
   -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
 }
 
 h1, h2, h3, h4, h5 {
@@ -31,6 +48,7 @@ h1, h2, h3, h4, h5 {
 
 .gold { color: var(--gold); }
 .gold-bg { background-color: var(--gold); }
+.teal { color: var(--alert); }
 
 .card-dark {
   background: var(--bg-card);
@@ -39,30 +57,47 @@ h1, h2, h3, h4, h5 {
 }
 
 .glow-gold {
-  box-shadow: 0 0 30px rgba(193, 177, 118, 0.25);
+  box-shadow: 0 0 32px rgba(201, 168, 76, 0.22);
 }
 
 .gradient-gold {
-  background: linear-gradient(135deg, #C1B176 0%, #8A7D52 100%);
+  background: linear-gradient(135deg, #C9A84C 0%, #8A7030 100%);
+}
+
+/* Subtle top-border gold accent on cards */
+.card-prestige {
+  position: relative;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 1.5rem;
+  overflow: hidden;
+}
+.card-prestige::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  opacity: 0.6;
 }
 
 input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
-  height: 4px;
+  height: 3px;
   border-radius: 9999px;
-  background: rgba(193, 177, 118, 0.2);
+  background: rgba(201, 168, 76, 0.18);
   outline: none;
 }
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   background: var(--gold);
   cursor: pointer;
-  box-shadow: 0 0 10px rgba(193, 177, 118, 0.5);
+  box-shadow: 0 0 10px rgba(201, 168, 76, 0.5);
 }
 
 input[type="number"],
@@ -77,9 +112,15 @@ input[type="text"] {
   font-weight: 700;
   font-size: 1.1rem;
   outline: none;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 input[type="number"]:focus,
 input[type="text"]:focus {
   border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.1);
 }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg-black); }
+::-webkit-scrollbar-thumb { background: rgba(201, 168, 76, 0.3); border-radius: 9999px; }

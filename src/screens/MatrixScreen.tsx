@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Building2, TrendingUp, TrendingDown, Repeat2, Landmark, ArrowLeft, Lock } from 'lucide-react';
+import { Building2, TrendingUp, TrendingDown, Repeat2, Landmark, ArrowLeft } from 'lucide-react';
 
 type Path = 'acquisition' | 'return';
 
@@ -20,6 +20,7 @@ const allTools = [
     active: true,
     color: 'var(--gold)',
     colorBg: 'var(--gold-dim)',
+    glowColor: 'rgba(201, 168, 76, 0.22)',
   },
   {
     id: 2,
@@ -30,7 +31,8 @@ const allTools = [
     tag: 'Disponível',
     active: true,
     color: 'var(--alert)',
-    colorBg: 'rgba(204,51,102,0.12)',
+    colorBg: 'var(--alert-dim)',
+    glowColor: 'rgba(94, 185, 170, 0.22)',
   },
   {
     id: 3,
@@ -42,6 +44,7 @@ const allTools = [
     active: true,
     color: 'var(--gold)',
     colorBg: 'var(--gold-dim)',
+    glowColor: 'rgba(201, 168, 76, 0.22)',
   },
   {
     id: 4,
@@ -52,7 +55,8 @@ const allTools = [
     tag: 'Disponível',
     active: true,
     color: 'var(--alert)',
-    colorBg: 'rgba(204,51,102,0.12)',
+    colorBg: 'var(--alert-dim)',
+    glowColor: 'rgba(94, 185, 170, 0.22)',
   },
   {
     id: 5,
@@ -62,8 +66,9 @@ const allTools = [
     description: 'Substitua um financiamento bancário por consórcio. Compare o custo total e veja quanto você economiza em juros.',
     tag: 'Disponível',
     active: true,
-    color: 'var(--alert)',
-    colorBg: 'rgba(204,51,102,0.12)',
+    color: 'var(--gold)',
+    colorBg: 'var(--gold-dim)',
+    glowColor: 'rgba(201, 168, 76, 0.22)',
   },
 ];
 
@@ -74,6 +79,7 @@ const card = {
 
 export default function MatrixScreen({ path, onSelect, onBack }: Props) {
   const label = path === 'acquisition' ? 'Com Aquisição' : 'Sem Aquisição';
+  const accentColor = path === 'acquisition' ? 'var(--gold)' : 'var(--alert)';
   const tools = allTools.filter((t) => t.path === path);
 
   return (
@@ -87,22 +93,25 @@ export default function MatrixScreen({ path, onSelect, onBack }: Props) {
         >
           <button
             onClick={onBack}
-            className="flex items-center gap-2 text-sm font-semibold mb-8 transition-colors hover:opacity-70"
+            className="flex items-center gap-2 text-sm font-semibold mb-8 transition-opacity hover:opacity-60"
             style={{ color: 'var(--text-secondary)' }}
           >
-            <ArrowLeft size={16} /> Voltar
+            <ArrowLeft size={15} /> Voltar
           </button>
 
-          <p className="text-xs font-bold uppercase tracking-[0.3em] mb-3" style={{ color: 'var(--gold)' }}>
+          <p
+            className="text-[10px] font-bold uppercase tracking-[0.35em] mb-3"
+            style={{ color: accentColor }}
+          >
             {label}
           </p>
           <h2
-            className="text-3xl md:text-5xl font-black text-white"
-            style={{ fontFamily: 'Montserrat, sans-serif' }}
+            className="text-3xl md:text-5xl font-black leading-tight"
+            style={{ color: 'var(--text-primary)' }}
           >
             Escolha sua
             <br />
-            <span style={{ color: 'var(--gold)' }}>estratégia</span>
+            <span style={{ color: accentColor }}>estratégia</span>
           </h2>
         </motion.div>
 
@@ -110,7 +119,7 @@ export default function MatrixScreen({ path, onSelect, onBack }: Props) {
           variants={{ show: { transition: { staggerChildren: 0.1 } } }}
           initial="hidden"
           animate="show"
-          className="grid grid-cols-1 md:grid-cols-2 gap-5"
+          className="grid grid-cols-1 md:grid-cols-2 gap-4"
         >
           {tools.map((tool) => {
             const Icon = tool.icon;
@@ -119,41 +128,53 @@ export default function MatrixScreen({ path, onSelect, onBack }: Props) {
                 key={tool.id}
                 variants={card}
                 transition={{ duration: 0.4, ease: 'easeOut' }}
-                whileHover={tool.active ? { scale: 1.02, boxShadow: '0 0 40px rgba(193,177,118,0.25)' } : {}}
+                whileHover={
+                  tool.active
+                    ? {
+                        scale: 1.02,
+                        boxShadow: `0 0 40px ${tool.glowColor}, 0 8px 32px rgba(0,0,0,0.5)`,
+                      }
+                    : {}
+                }
                 onClick={() => tool.active && onSelect(tool.id)}
-                className="relative p-7 rounded-3xl border transition-all duration-300"
+                className="relative p-7 rounded-2xl border transition-all duration-300 overflow-hidden"
                 style={{
                   background: 'var(--bg-card)',
-                  borderColor: tool.active ? 'var(--border)' : 'rgba(255,255,255,0.05)',
+                  borderColor: tool.active ? 'var(--border)' : 'rgba(247,248,253,0.05)',
                   cursor: tool.active ? 'pointer' : 'default',
-                  opacity: tool.active ? 1 : 0.5,
+                  opacity: tool.active ? 1 : 0.45,
                 }}
               >
-                {!tool.active && (
-                  <div className="absolute top-5 right-5">
-                    <Lock size={14} style={{ color: 'var(--text-secondary)' }} />
-                  </div>
+                {/* Top accent line */}
+                {tool.active && (
+                  <div
+                    className="absolute top-0 left-0 right-0 h-px"
+                    style={{
+                      background: `linear-gradient(90deg, transparent, ${tool.color}, transparent)`,
+                      opacity: 0.5,
+                    }}
+                  />
                 )}
 
                 <div
-                  className="w-12 h-12 rounded-xl flex items-center justify-center mb-5"
+                  className="w-11 h-11 rounded-xl flex items-center justify-center mb-5"
                   style={{ background: tool.colorBg }}
                 >
-                  <Icon size={22} style={{ color: tool.color }} />
+                  <Icon size={20} style={{ color: tool.color }} />
                 </div>
 
                 <div className="flex items-start justify-between mb-3">
                   <h3
-                    className="text-lg font-black text-white leading-tight"
-                    style={{ fontFamily: 'Montserrat, sans-serif' }}
+                    className="text-base font-black leading-tight"
+                    style={{ color: 'var(--text-primary)' }}
                   >
                     {tool.title}
                   </h3>
                   <span
-                    className="ml-3 flex-shrink-0 text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full"
+                    className="ml-3 flex-shrink-0 text-[9px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full"
                     style={{
-                      background: tool.active ? 'var(--gold-dim)' : 'rgba(160,160,160,0.1)',
-                      color: tool.active ? 'var(--gold)' : 'var(--text-secondary)',
+                      background: tool.active ? tool.colorBg : 'rgba(247,248,253,0.07)',
+                      color: tool.active ? tool.color : 'var(--text-secondary)',
                     }}
                   >
                     {tool.tag}
