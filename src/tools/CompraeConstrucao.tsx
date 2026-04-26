@@ -10,7 +10,7 @@ import { calculate, fmt, type SimData, INCC_MEDIO_HISTORICO } from '../lib/calcu
 import ComparisonChart from '../components/ComparisonChart';
 import FunilContemplacao from '../components/FunilContemplacao';
 
-const TOTAL_STEPS = 7;
+const TOTAL_STEPS = 8;
 
 const slideVariants = {
   enter: (dir: number) => ({ x: dir > 0 ? 60 : -60, opacity: 0 }),
@@ -133,6 +133,7 @@ export default function CompraeConstrucao({ onBack }: Props) {
             {step === 5 && <Step5 data={data} r={r} />}
             {step === 6 && <Step6 data={data} set={set} r={r} />}
             {step === 7 && <Step7 data={data} set={set} r={r} />}
+            {step === 8 && <Step8 data={data} set={set} r={r} />}
           </motion.div>
         </AnimatePresence>
       </div>
@@ -528,6 +529,146 @@ function Step7({ data, set, r }: { data: SimData; set: (k: keyof SimData) => (v:
           </span>
         </div>
       </motion.div>
+    </div>
+  );
+}
+
+function Step8({ data, set, r }: { data: SimData; set: (k: keyof SimData) => (v: number) => void; r: ReturnType<typeof calculate> }) {
+  const isPositive = r.rentabilidadeMensal >= 0;
+  const rentabilidadeAnual = Math.pow(1 + r.rentabilidadeMensal / 100, 12) - 1;
+
+  return (
+    <div className="space-y-8">
+      <StepHeader
+        step={8}
+        title="Rentabilidade do Investimento"
+        subtitle="Retorno real considerando aportes mensais graduais — não como capital único."
+      />
+
+      {/* Hero: Rentabilidade Mensal */}
+      <motion.div
+        initial={{ scale: 0.96, opacity: 0.8 }}
+        animate={{ scale: 1, opacity: 1 }}
+        className="p-8 md:p-12 rounded-[2rem] text-center"
+        style={{
+          background: isPositive
+            ? 'linear-gradient(135deg, #0D1A00 0%, #050800 100%)'
+            : 'linear-gradient(135deg, #1A0006 0%, #0D0003 100%)',
+          border: `1px solid ${isPositive ? 'rgba(0,200,100,0.3)' : 'rgba(204,51,102,0.3)'}`,
+        }}
+      >
+        <p className="text-xs font-black uppercase tracking-widest mb-3" style={{ color: isPositive ? '#00C864' : 'var(--alert)' }}>
+          Rentabilidade Mensal
+        </p>
+        <motion.p
+          key={r.rentabilidadeMensal}
+          initial={{ y: 10, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="text-5xl md:text-7xl font-black mb-2"
+          style={{ fontFamily: 'Montserrat', color: isPositive ? '#00C864' : 'var(--alert)' }}
+        >
+          {r.rentabilidadeMensal.toFixed(2)}% a.m.
+        </motion.p>
+        <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>
+          ≈ {(rentabilidadeAnual * 100).toFixed(1)}% ao ano
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t pt-6" style={{ borderColor: isPositive ? 'rgba(0,200,100,0.15)' : 'rgba(204,51,102,0.15)' }}>
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--text-secondary)' }}>Capital Médio Empregado</p>
+            <p className="text-lg font-black text-white" style={{ fontFamily: 'Montserrat' }}>{fmt(r.capitalMedioEmpregado)}</p>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>média ponderada dos aportes</p>
+          </div>
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--text-secondary)' }}>Total Desembolsado</p>
+            <p className="text-lg font-black text-white" style={{ fontFamily: 'Montserrat' }}>{fmt(r.totalDesembolsado)}</p>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>pré-contemplação + obra</p>
+          </div>
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--text-secondary)' }}>Período Total</p>
+            <p className="text-lg font-black text-white" style={{ fontFamily: 'Montserrat' }}>{r.totalMesesInvestindo} meses</p>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>{data.mesContemplacao}m espera + {data.mesesObra}m obra</p>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Breakdown dos aportes */}
+      <div className="rounded-2xl overflow-hidden border" style={{ borderColor: 'var(--border)' }}>
+        <div className="px-5 py-3" style={{ background: 'rgba(193,177,118,0.08)' }}>
+          <p className="text-xs font-black uppercase tracking-widest" style={{ color: 'var(--gold)' }}>
+            Cronograma de Aportes
+          </p>
+        </div>
+        <div className="divide-y" style={{ borderColor: 'var(--border)' }}>
+          <div className="px-5 py-4 flex justify-between items-center">
+            <div>
+              <p className="text-sm font-bold text-white">Fase 1 — Pré-Contemplação</p>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                {data.mesContemplacao} meses × {fmt(r.meiaParcela)}/mês (meia parcela)
+              </p>
+            </div>
+            <p className="text-lg font-black" style={{ fontFamily: 'Montserrat', color: 'var(--gold)' }}>
+              {fmt(r.valorInvestidoAteContemplacao)}
+            </p>
+          </div>
+          <div className="px-5 py-4 flex justify-between items-center">
+            <div>
+              <p className="text-sm font-bold text-white">Fase 2 — Período de Obra</p>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                {data.mesesObra} meses × {fmt(r.parcelaComSeguro)}/mês (c/ seguro)
+              </p>
+            </div>
+            <p className="text-lg font-black" style={{ fontFamily: 'Montserrat', color: 'var(--gold)' }}>
+              {fmt(r.totalPagoNaObra)}
+            </p>
+          </div>
+          <div className="px-5 py-4 flex justify-between items-center" style={{ background: 'rgba(193,177,118,0.04)' }}>
+            <p className="text-sm font-bold" style={{ color: 'var(--gold)' }}>Total Desembolsado</p>
+            <p className="text-xl font-black" style={{ fontFamily: 'Montserrat', color: 'var(--gold)' }}>
+              {fmt(r.totalDesembolsado)}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* INCC: valorização da carta */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="p-5 rounded-2xl border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+          <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--text-secondary)' }}>Carta Original</p>
+          <p className="text-xl font-black text-white" style={{ fontFamily: 'Montserrat' }}>{fmt(r.totalCredito)}</p>
+        </div>
+        <div className="p-5 rounded-2xl border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+          <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: '#00C864' }}>
+            Carta na Contemplação (INCC {data.inccAnual.toFixed(1)}% a.a.)
+          </p>
+          <p className="text-xl font-black" style={{ fontFamily: 'Montserrat', color: '#00C864' }}>
+            {fmt(r.creditoReajustadoNaContemplacao)}
+          </p>
+          <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+            após {Math.floor(data.mesContemplacao / 12)} reajuste(s)
+          </p>
+        </div>
+      </div>
+
+      {/* Sensibilidade */}
+      <div className="p-6 rounded-2xl border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+        <p className="text-xs font-black uppercase tracking-widest mb-4" style={{ color: 'var(--gold)' }}>
+          Sensibilidade — Mês da Contemplação
+        </p>
+        <div className="flex justify-between items-center mb-3">
+          <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>Mês {data.mesContemplacao}</span>
+          <span className="text-sm font-bold" style={{ color: 'var(--gold)' }}>Máx: {data.prazoTotal}</span>
+        </div>
+        <input
+          type="range" min={1} max={data.prazoTotal}
+          value={data.mesContemplacao}
+          onChange={(e) => set('mesContemplacao')(Number(e.target.value))}
+          className="w-full"
+        />
+        <p className="text-xs mt-2 text-center" style={{ color: 'var(--text-secondary)' }}>
+          Contemplar mais cedo → menos capital empregado → maior rentabilidade mensal
+        </p>
+      </div>
     </div>
   );
 }

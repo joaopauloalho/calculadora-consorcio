@@ -49,6 +49,8 @@ export interface SimResults {
   lucroTotal: number;
   lucroMensalMedio: number;
   creditoReajustadoNaContemplacao: number;
+  rentabilidadeMensal: number;   // % a.m. do lucro sobre capital médio ponderado
+  capitalMedioEmpregado: number; // capital médio ao longo da operação
 }
 
 export function calculate(data: SimData): SimResults {
@@ -83,6 +85,18 @@ export function calculate(data: SimData): SimResults {
   const lucroMensalMedio = lucroTotal / totalMesesInvestindo;
   const creditoReajustadoNaContemplacao = aplicarReajusteINCC(totalCredito, data.inccAnual, data.mesContemplacao);
 
+  // Capital médio ponderado: pré-contemplação + obra
+  // Na pré-contemplação: aportes crescendo de 0 → valorInvestidoAteContemplacao
+  // Na obra: aportes crescendo de valorInvestidoAteContemplacao → totalDesembolsado
+  const capitalMedioPreContemp = valorInvestidoAteContemplacao / 2;
+  const capitalMedioObra = valorInvestidoAteContemplacao + (data.mesesObra > 0 ? totalPagoNaObra / 2 : 0);
+  const capitalMedioEmpregado = totalMesesInvestindo > 0
+    ? (capitalMedioPreContemp * data.mesContemplacao + capitalMedioObra * data.mesesObra) / totalMesesInvestindo
+    : 0;
+  const rentabilidadeMensal = capitalMedioEmpregado > 0 && totalMesesInvestindo > 0
+    ? (lucroTotal / capitalMedioEmpregado / totalMesesInvestindo) * 100
+    : 0;
+
   return {
     totalCredito, totalComTaxa, parcelaCheiaOriginal, meiaParcela,
     valorInvestidoAteContemplacao, saldoDevedorNaContemplacao, parcelaComSeguro,
@@ -91,6 +105,7 @@ export function calculate(data: SimData): SimResults {
     mediaParcelaInvestida, parcelasRestantes, valorFinanciadoBanco,
     parcelaEstimadaBanco, totalEstimadoPagoBanco, custoTotalAquisicaoConsorcio,
     lucroTotal, lucroMensalMedio, creditoReajustadoNaContemplacao,
+    rentabilidadeMensal, capitalMedioEmpregado,
   };
 }
 
