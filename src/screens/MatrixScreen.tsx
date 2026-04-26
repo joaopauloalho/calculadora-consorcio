@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Building2, TrendingUp, TrendingDown, Repeat2, Landmark, ArrowLeft } from 'lucide-react';
+import { Building2, TrendingUp, TrendingDown, Repeat2, Landmark, ArrowLeft, Zap } from 'lucide-react';
 
 type Path = 'acquisition' | 'return';
 
@@ -64,6 +64,18 @@ const allTools = [
     icon: TrendingDown,
     title: 'Quitação de Financiamento',
     description: 'Substitua um financiamento bancário por consórcio. Compare o custo total e veja quanto você economiza em juros.',
+    tag: 'Disponível',
+    active: true,
+    color: 'var(--gold)',
+    colorBg: 'var(--gold-dim)',
+    glowColor: 'rgba(201, 168, 76, 0.22)',
+  },
+  {
+    id: 6,
+    path: 'return' as Path,
+    icon: Zap,
+    title: 'Simulador de Lance',
+    description: 'Compare os 5 tipos de lance Ello e descubra qual maximiza seu crédito na contemplação.',
     tag: 'Disponível',
     active: true,
     color: 'var(--gold)',

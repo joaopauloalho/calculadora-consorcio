@@ -8,6 +8,7 @@ import AluguelConsorcio from './tools/AluguelConsorcio';
 import CartaAplicada from './tools/CartaAplicada';
 import QuitacaoFinanciamento from './tools/QuitacaoFinanciamento';
 import QuickCalc from './tools/QuickCalc';
+import SimuladorLance from './tools/SimuladorLance';
 
 type View = 'purpose' | 'matrix' | 'tool' | 'quickcalc';
 type Path = 'acquisition' | 'return';
@@ -88,6 +89,12 @@ export default function App() {
       {view === 'tool' && tool === 5 && (
         <motion.div key="tool-5" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}>
           <QuitacaoFinanciamento onBack={() => setView('matrix')} />
+        </motion.div>
+      )}
+
+      {view === 'tool' && tool === 6 && (
+        <motion.div key="tool-6" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}>
+          <SimuladorLance onBack={() => setView('matrix')} />
         </motion.div>
       )}
     </AnimatePresence>
