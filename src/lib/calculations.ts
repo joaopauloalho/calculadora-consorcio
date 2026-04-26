@@ -220,6 +220,8 @@ export interface QuitacaoData {
   prazoConsorcio: number;
   mesContemplacao: number;
   cetBanco?: number;   // CET banco % a.a. (opcional)
+  trMensal?: number;   // TR mensal default 0.001 (0.1%/mês)
+  inccAnual?: number;  // INCC anual default INCC_MEDIO_HISTORICO (4.57%)
 }
 
 export interface QuitacaoResults {
@@ -240,6 +242,38 @@ export interface QuitacaoResults {
   mesesDividaConsorcio: number;
   tempoEliminado: number;
   creditoCobre: boolean;
+  mesCruzamento: number | null;
+  excedenteCreditoSaldo: number;
+}
+
+export interface PontoEvolucao {
+  mes: number;
+  saldoDevedor: number;
+  creditoConsorcio: number;
+  diferenca: number;   // creditoConsorcio - saldoDevedor (positivo = crédito maior)
+}
+
+export function calcularEvolucaoCreditoSaldo(data: QuitacaoData): PontoEvolucao[] {
+  const trMensal = data.trMensal ?? 0.001;
+  const inccAnual = data.inccAnual ?? INCC_MEDIO_HISTORICO;
+  const pontos: PontoEvolucao[] = [];
+
+  let saldo = data.saldoDevedorBanco;
+  const maxMeses = Math.max(data.prazoRestanteBanco, data.prazoConsorcio);
+
+  for (let mes = 0; mes <= maxMeses; mes += 12) {
+    const creditoConsorcio = aplicarReajusteINCC(data.valorCredito, inccAnual, mes);
+    const diferenca = creditoConsorcio - saldo;
+    pontos.push({ mes, saldoDevedor: Math.max(0, saldo), creditoConsorcio, diferenca });
+
+    // Evolução do saldo bancário pelos próximos 12 meses
+    for (let i = 0; i < 12; i++) {
+      if (saldo <= 0) break;
+      saldo = Math.max(0, saldo * (1 + trMensal) - data.parcelaBanco);
+    }
+  }
+
+  return pontos;
 }
 
 export function calculateQuitacao(data: QuitacaoData): QuitacaoResults {
@@ -267,6 +301,29 @@ export function calculateQuitacao(data: QuitacaoData): QuitacaoResults {
   const tempoEliminado = mesesDividaBanco - mesesDividaConsorcio;
   const creditoCobre = data.valorCredito >= data.saldoDevedorBanco;
 
+  const trMensal = data.trMensal ?? 0.001;
+  const inccAnual = data.inccAnual ?? INCC_MEDIO_HISTORICO;
+
+  // Simular saldo com TR ao longo do tempo para encontrar o mês de cruzamento
+  let saldoSimulado = data.saldoDevedorBanco;
+  let mesCruzamento: number | null = null;
+  for (let mes = 1; mes <= data.prazoRestanteBanco; mes++) {
+    saldoSimulado = Math.max(0, saldoSimulado * (1 + trMensal) - data.parcelaBanco);
+    const creditoMes = aplicarReajusteINCC(data.valorCredito, inccAnual, mes);
+    if (creditoMes >= saldoSimulado && mesCruzamento === null) {
+      mesCruzamento = mes;
+    }
+  }
+
+  // Crédito e saldo no mês de cruzamento (ou no final do prazo)
+  const mesRef = mesCruzamento ?? data.prazoRestanteBanco;
+  let saldoNoMesRef = data.saldoDevedorBanco;
+  for (let i = 0; i < mesRef; i++) {
+    saldoNoMesRef = Math.max(0, saldoNoMesRef * (1 + trMensal) - data.parcelaBanco);
+  }
+  const creditoNoMesRef = aplicarReajusteINCC(data.valorCredito, inccAnual, mesRef);
+  const excedenteCreditoSaldo = Math.max(0, creditoNoMesRef - saldoNoMesRef);
+
   return {
     custoTotalBanco, jurosTotaisBanco,
     totalComTaxaConsorcio, parcelaCheiaConsorcio, meiaParcela,
@@ -276,6 +333,8 @@ export function calculateQuitacao(data: QuitacaoData): QuitacaoResults {
     custoTotalConsorcio, economiaNominal,
     mesesDividaBanco, mesesDividaConsorcio, tempoEliminado,
     creditoCobre,
+    mesCruzamento,
+    excedenteCreditoSaldo,
   };
 }
 

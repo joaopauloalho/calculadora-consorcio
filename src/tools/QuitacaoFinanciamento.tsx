@@ -4,7 +4,7 @@ import {
   ArrowLeft, ArrowRight, ChevronLeft, RefreshCw, TrendingDown,
   Info, CheckCircle2, AlertTriangle,
 } from 'lucide-react';
-import { calculateQuitacao, fmt, type QuitacaoData } from '../lib/calculations';
+import { calculateQuitacao, calcularEvolucaoCreditoSaldo, fmt, INCC_MEDIO_HISTORICO, type QuitacaoData } from '../lib/calculations';
 import FunilContemplacao from '../components/FunilContemplacao';
 import BRLInput from '../components/BRLInput';
 
@@ -79,6 +79,8 @@ export default function QuitacaoFinanciamento({ onBack }: Props) {
     taxaAdm: 0.23,
     prazoConsorcio: 220,
     mesContemplacao: 30,
+    trMensal: 0.001,
+    inccAnual: INCC_MEDIO_HISTORICO,
   });
 
   const r = calculateQuitacao(data);
@@ -536,6 +538,75 @@ function Step4({ data, r }: { data: QuitacaoData; r: Results }) {
             {r.parcelaCheiaConsorcio < data.parcelaBanco ? '↓ ' : '↑ '}
             {fmt(Math.abs(r.parcelaCheiaConsorcio - data.parcelaBanco))}/mês
           </span>
+        </div>
+      </div>
+
+      {/* Crédito do Consórcio vs Saldo Devedor */}
+      <div className="space-y-4">
+        <p className="text-xs font-black uppercase tracking-widest" style={{ color: 'var(--gold)' }}>
+          Evolução: Crédito do Consórcio vs Saldo Devedor
+        </p>
+
+        {r.mesCruzamento !== null ? (
+          <div className="p-5 rounded-2xl border" style={{ background: '#001A0A', borderColor: 'rgba(0,200,100,0.3)' }}>
+            <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: '#00C864' }}>
+              Cruzamento no mês {r.mesCruzamento}
+            </p>
+            <p className="text-xl font-black text-white" style={{ fontFamily: 'Montserrat' }}>
+              Excedente de {fmt(r.excedenteCreditoSaldo)}
+            </p>
+            <p className="text-xs mt-2" style={{ color: 'var(--text-secondary)' }}>
+              A partir deste mês, seu crédito supera o saldo devedor.
+              O excedente pode ser usado para reforma, abater a carta ou deixar rendendo.
+            </p>
+          </div>
+        ) : (
+          <div className="p-5 rounded-2xl border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+            <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--text-secondary)' }}>
+              Sem cruzamento no período
+            </p>
+            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+              O crédito do consórcio não supera o saldo devedor dentro do prazo do financiamento.
+            </p>
+          </div>
+        )}
+
+        {/* Tabela de evolução a cada 12 meses */}
+        {(() => {
+          const evolucao = calcularEvolucaoCreditoSaldo(data);
+          return (
+            <div className="rounded-2xl overflow-hidden border" style={{ borderColor: 'var(--border)' }}>
+              <div className="grid grid-cols-4 px-4 py-2" style={{ background: 'rgba(193,177,118,0.08)' }}>
+                <span className="text-[10px] font-black uppercase" style={{ color: 'var(--text-secondary)' }}>Mês</span>
+                <span className="text-[10px] font-black uppercase" style={{ color: 'var(--alert)' }}>Saldo Banco</span>
+                <span className="text-[10px] font-black uppercase" style={{ color: '#00C864' }}>Crédito</span>
+                <span className="text-[10px] font-black uppercase" style={{ color: 'var(--gold)' }}>Diferença</span>
+              </div>
+              {evolucao.slice(0, 7).map((p) => (
+                <div
+                  key={p.mes}
+                  className="grid grid-cols-4 px-4 py-2.5 border-t text-xs"
+                  style={{
+                    borderColor: 'var(--border)',
+                    background: p.diferenca > 0 ? 'rgba(0,200,100,0.05)' : 'transparent',
+                  }}
+                >
+                  <span className="font-bold text-white">{p.mes === 0 ? 'Hoje' : `Mês ${p.mes}`}</span>
+                  <span style={{ color: 'var(--alert)' }}>{fmt(p.saldoDevedor)}</span>
+                  <span style={{ color: '#00C864' }}>{fmt(p.creditoConsorcio)}</span>
+                  <span style={{ color: p.diferenca > 0 ? '#00C864' : 'var(--text-secondary)' }}>
+                    {p.diferenca > 0 ? '+' : ''}{fmt(p.diferenca)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          );
+        })()}
+
+        <div className="p-4 rounded-xl text-xs" style={{ background: 'var(--bg-card)', color: 'var(--text-secondary)' }}>
+          <Info size={12} className="inline mr-1.5" style={{ color: 'var(--gold)' }} />
+          Saldo banco evolui com TR {((data.trMensal ?? 0.001) * 100).toFixed(1)}%/mês.
+          Crédito atualizado pelo INCC {(data.inccAnual ?? INCC_MEDIO_HISTORICO).toFixed(2)}% a.a. (teto 5%).
         </div>
       </div>
     </div>
