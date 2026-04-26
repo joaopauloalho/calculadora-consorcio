@@ -240,9 +240,12 @@ function Step3({ data, set, r }: { data: SimData; set: (k: keyof SimData) => (v:
         <StatCard label="Saldo Devedor na Contemplação" value={fmt(r.saldoDevedorNaContemplacao)} />
         <div className="md:col-span-2 p-6 rounded-2xl" style={{ background: 'linear-gradient(135deg, #0D1A2E 0%, #0A1020 100%)', border: '1px solid rgba(100,150,255,0.2)' }}>
           <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: '#7EB0FF' }}>
-            Nova Parcela Pós-Contemplação (c/ Seguro 0.0555%/mês)
+            Nova Parcela Pós-Contemplação (c/ Seguro)
           </p>
           <p className="text-3xl font-black text-white" style={{ fontFamily: 'Montserrat' }}>{fmt(r.parcelaComSeguro)}</p>
+          <p className="text-xs mt-1" style={{ color: 'rgba(126,176,255,0.6)' }}>
+            {r.mesesRestantesAposContemplacao} meses restantes · saldo {fmt(r.saldoDevedorNaContemplacao)}
+          </p>
         </div>
       </div>
     </div>

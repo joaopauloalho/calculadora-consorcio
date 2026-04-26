@@ -18,6 +18,8 @@ export interface SimResults {
   valorInvestidoAteContemplacao: number;
   saldoDevedorNaContemplacao: number;
   parcelaComSeguro: number;
+  mesesRestantesAposContemplacao: number;
+  parcelaPosContemplacao: number;
   totalPagoNaObra: number;
   saldoDevedorPosObra: number;
   totalDesembolsado: number;
@@ -40,10 +42,12 @@ export function calculate(data: SimData): SimResults {
 
   const valorInvestidoAteContemplacao = data.mesContemplacao * meiaParcela;
   const saldoDevedorNaContemplacao = totalComTaxa - valorInvestidoAteContemplacao;
-  const parcelaComSeguro = parcelaCheiaOriginal + saldoDevedorNaContemplacao * data.seguroMensalPercent;
+  const mesesRestantesAposContemplacao = Math.max(1, data.prazoTotal - data.mesContemplacao);
+  const parcelaPosContemplacao = saldoDevedorNaContemplacao / mesesRestantesAposContemplacao;
+  const parcelaComSeguro = parcelaPosContemplacao + saldoDevedorNaContemplacao * data.seguroMensalPercent;
 
   const totalPagoNaObra = data.mesesObra * parcelaComSeguro;
-  const saldoDevedorPosObra = Math.max(0, saldoDevedorNaContemplacao - data.mesesObra * parcelaCheiaOriginal);
+  const saldoDevedorPosObra = Math.max(0, saldoDevedorNaContemplacao - data.mesesObra * parcelaPosContemplacao);
 
   const totalDesembolsado = valorInvestidoAteContemplacao + totalPagoNaObra;
   const totalMesesInvestindo = data.mesContemplacao + data.mesesObra;
@@ -64,6 +68,7 @@ export function calculate(data: SimData): SimResults {
   return {
     totalCredito, totalComTaxa, parcelaCheiaOriginal, meiaParcela,
     valorInvestidoAteContemplacao, saldoDevedorNaContemplacao, parcelaComSeguro,
+    mesesRestantesAposContemplacao, parcelaPosContemplacao,
     totalPagoNaObra, saldoDevedorPosObra, totalDesembolsado, totalMesesInvestindo,
     mediaParcelaInvestida, parcelasRestantes, valorFinanciadoBanco,
     parcelaEstimadaBanco, totalEstimadoPagoBanco, custoTotalAquisicaoConsorcio,
