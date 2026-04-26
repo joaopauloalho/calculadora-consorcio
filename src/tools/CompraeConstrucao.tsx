@@ -388,6 +388,32 @@ function Step6({ data, set, r }: { data: SimData; set: (k: keyof SimData) => (v:
           </span>
         </div>
       </div>
+
+      {/* Taxa Efetiva e Custo Total */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="p-5 rounded-2xl border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+          <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--text-secondary)' }}>
+            Taxa Efetiva do Consórcio
+          </p>
+          <p className="text-2xl font-black" style={{ fontFamily: 'Montserrat', color: 'var(--gold)' }}>
+            {(data.taxaAdm / (data.prazoTotal / 12)).toFixed(2)}% a.a.
+          </p>
+          <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
+            {(data.taxaAdm * 100).toFixed(1)}% taxa adm ÷ {(data.prazoTotal / 12).toFixed(1)} anos
+          </p>
+        </div>
+        <div className="p-5 rounded-2xl border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+          <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--text-secondary)' }}>
+            Custo Total do Crédito
+          </p>
+          <p className="text-2xl font-black" style={{ fontFamily: 'Montserrat', color: 'var(--alert)' }}>
+            {fmt(r.totalComTaxa - r.totalCredito)}
+          </p>
+          <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
+            {(data.taxaAdm * 100).toFixed(1)}% de {fmt(r.totalCredito)} em taxa administrativa
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
