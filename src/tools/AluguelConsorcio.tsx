@@ -91,7 +91,7 @@ export default function AluguelConsorcio({ onBack }: Props) {
     taxaAdm: 0.23,
     prazoTotal: 220,
     mesContemplacao: 30,
-    valorImovelFinal: 600000,
+    valorImovelFinal: 500000,
     rendimentoPercent: 0.005,
     numOperacoes: 3,
     inccAnual: INCC_MEDIO_HISTORICO,
@@ -100,7 +100,14 @@ export default function AluguelConsorcio({ onBack }: Props) {
   const [numCiclos, setNumCiclos] = useState(1);
 
   const r = calculateAluguel(data);
-  const set = (key: keyof AluguelData) => (v: number) => setData((d) => ({ ...d, [key]: v }));
+  const set = (key: keyof AluguelData) => (v: number) => setData((d) => {
+    const updates: Partial<AluguelData> = { [key]: v };
+    // Mantém valorImovelFinal sincronizado com valorCredito enquanto não editado separadamente
+    if (key === 'valorCredito' && d.valorImovelFinal === d.valorCredito) {
+      updates.valorImovelFinal = v;
+    }
+    return { ...d, ...updates };
+  });
 
   const valorMultiplier = data.valorCredito > 0 ? data.valorImovelFinal / data.valorCredito : 1;
   const ciclos = calcularCascata(
