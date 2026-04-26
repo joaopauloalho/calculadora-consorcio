@@ -95,6 +95,7 @@ export default function VendaDaCartaContemplada({ onBack }: Props) {
     prazoTotal: 220,
     mesContemplacao: 30,
     valorVendaChave: 200000,
+    inccAnual: 3.5,
   });
 
   const r = calculateVendaCarta(data);
@@ -209,6 +210,7 @@ function Step1({ data, set, r }: { data: VendaCartaData; set: SetFn; r: Results 
         <GoldInput label="Meia Parcela (até contemplar)" value={Math.round(meiaParcela)} onChange={onParcelaChange} suffix="R$" />
         <GoldInput label="Taxa Adm. Total" value={data.taxaAdm * 100} onChange={(v) => { set('taxaAdm')(v / 100); set('valorParcela')(Math.round((data.valorCredito * (1 + v / 100)) / data.prazoTotal / 2)); }} suffix="%" />
         <GoldInput label="Prazo Total do Grupo" value={data.prazoTotal} onChange={(v) => { set('prazoTotal')(v); set('valorParcela')(Math.round((data.valorCredito * (1 + data.taxaAdm)) / v / 2)); }} suffix="meses" />
+        <GoldInput label="INCC Anual" value={data.inccAnual} onChange={set('inccAnual')} suffix="% a.a." />
       </div>
     </div>
   );
@@ -250,7 +252,7 @@ function Step3({ data, set, r }: { data: VendaCartaData; set: SetFn; r: Results 
   const onPercentChange = (s: string) => {
     setAgioStr(s);
     const p = parseFloat(s) || 0;
-    set('valorVendaChave')(Math.round(data.valorCredito * p / 100));
+    set('valorVendaChave')(Math.round(r.valorCreditoAtualizado * p / 100));
   };
 
   return (
@@ -265,9 +267,14 @@ function Step3({ data, set, r }: { data: VendaCartaData; set: SetFn; r: Results 
           <span className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--text-secondary)' }}>
             Valor em reais
           </span>
-          <span className="font-black text-lg" style={{ color: 'var(--gold)', fontFamily: 'Montserrat' }}>
-            {fmt(data.valorVendaChave)}
-          </span>
+          <div className="text-right">
+            <span className="font-black text-lg block" style={{ color: 'var(--gold)', fontFamily: 'Montserrat' }}>
+              {fmt(data.valorVendaChave)}
+            </span>
+            <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+              {agioPercent}% de {fmt(r.valorCreditoAtualizado)} (carta atualizada INCC)
+            </span>
+          </div>
         </div>
         <div className="h-px" style={{ background: 'var(--border)' }} />
         <div className="grid grid-cols-2 gap-4">
@@ -282,9 +289,20 @@ function Step3({ data, set, r }: { data: VendaCartaData; set: SetFn; r: Results 
           </div>
         </div>
       </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="p-4 rounded-xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+          <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--text-secondary)' }}>Carta Original</p>
+          <p className="text-lg font-black text-white" style={{ fontFamily: 'Montserrat' }}>{fmt(data.valorCredito)}</p>
+        </div>
+        <div className="p-4 rounded-xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+          <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: '#00C864' }}>Carta Atualizada (INCC {data.inccAnual}% a.a.)</p>
+          <p className="text-lg font-black" style={{ fontFamily: 'Montserrat', color: '#00C864' }}>{fmt(r.valorCreditoAtualizado)}</p>
+          <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>após {data.mesContemplacao} meses</p>
+        </div>
+      </div>
       <div className="p-5 rounded-2xl border text-sm" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>
         <Info size={14} className="inline mr-2" style={{ color: 'var(--gold)' }} />
-        O <strong style={{ color: 'white' }}>valor de compra da carta</strong> é o prêmio pela contemplação. O comprador paga {agioPercent}% do crédito ({fmt(data.valorVendaChave)}) e assume as parcelas restantes — ainda assim pagando menos que no banco.
+        O <strong style={{ color: 'white' }}>valor de compra da carta</strong> é o prêmio pela contemplação. O comprador paga {agioPercent}% da carta atualizada ({fmt(data.valorVendaChave)}) e assume as parcelas restantes — ainda assim pagando menos que no banco.
       </div>
     </div>
   );

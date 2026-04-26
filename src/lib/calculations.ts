@@ -83,6 +83,7 @@ export interface VendaCartaData {
   prazoTotal: number;
   mesContemplacao: number;
   valorVendaChave: number;
+  inccAnual: number;   // INCC % a.a. (ex: 3.5 significa 3.5% a.a.)
 }
 
 export interface VendaCartaResults {
@@ -97,10 +98,13 @@ export interface VendaCartaResults {
   totalEstimadoPagoBanco: number;
   economiaTotalComprador: number;
   rentabilidadeMensal: number;
+  valorCreditoAtualizado: number;   // valor da carta corrigido pelo INCC até o mês de contemplação
 }
 
 export function calculateVendaCarta(data: VendaCartaData): VendaCartaResults {
   const totalComTaxa = data.valorCredito * (1 + data.taxaAdm);
+  const inccMensal = Math.pow(1 + data.inccAnual / 100, 1 / 12) - 1;
+  const valorCreditoAtualizado = data.valorCredito * Math.pow(1 + inccMensal, data.mesContemplacao);
   const totalDesembolsado = data.mesContemplacao * data.valorParcela;
   const saldoDevedorNaContemplacao = Math.max(0, totalComTaxa - totalDesembolsado);
 
@@ -125,7 +129,7 @@ export function calculateVendaCarta(data: VendaCartaData): VendaCartaResults {
     totalComTaxa, totalDesembolsado, saldoDevedorNaContemplacao,
     lucroLiquido, roiAlavancado, lucroMensalMedio,
     custoTotalComprador, parcelaEstimadaBanco, totalEstimadoPagoBanco,
-    economiaTotalComprador, rentabilidadeMensal,
+    economiaTotalComprador, rentabilidadeMensal, valorCreditoAtualizado,
   };
 }
 
