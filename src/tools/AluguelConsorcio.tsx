@@ -156,8 +156,8 @@ export default function AluguelConsorcio({ onBack }: Props) {
             {step === 2 && <Step2 data={data} set={set} r={r} />}
             {step === 3 && <Step3 data={data} set={set} r={r} />}
             {step === 4 && <Step4 data={data} r={r} />}
-            {step === 5 && <Step5 data={data} set={set} r={r} />}
-            {step === 6 && <Step6 ciclos={ciclos} numCiclos={numCiclos} setNumCiclos={setNumCiclos} pBolso={r.meiaParcela} />}
+            {step === 5 && <Step6 ciclos={ciclos} numCiclos={numCiclos} setNumCiclos={setNumCiclos} pBolso={r.meiaParcela} />}
+            {step === 6 && <Step5 data={data} set={set} r={r} />}
           </motion.div>
         </AnimatePresence>
       </div>
@@ -401,7 +401,7 @@ function Step4({ data, r }: { data: AluguelData; r: Results }) {
 function Step5({ data, set, r }: { data: AluguelData; set: SetFn; r: Results }) {
   return (
     <div className="space-y-8">
-      <StepHeader step={5} title="Patrimônio e Renda Final" subtitle="Projete quantas operações você deseja acumular e veja o patrimônio e renda passiva após quitação total." />
+      <StepHeader step={6} title="Patrimônio e Renda Final" subtitle="Projete quantas operações você deseja acumular e veja o patrimônio e renda passiva após quitação total." />
 
       {/* Slider de operações */}
       <div className="p-6 rounded-2xl border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
@@ -577,7 +577,7 @@ function Step6({ ciclos, numCiclos, setNumCiclos, pBolso }: {
     <div className="space-y-6">
       <div className="mb-2">
         <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--gold)' }}>
-          Etapa 6 de {TOTAL_STEPS}
+          Etapa 5 de {TOTAL_STEPS}
         </p>
         <h2 className="text-2xl md:text-3xl font-black text-white mb-2" style={{ fontFamily: 'Montserrat' }}>
           Cascata de<br /><span style={{ color: 'var(--gold)' }}>Alavancagem</span>
