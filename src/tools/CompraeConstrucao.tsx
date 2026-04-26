@@ -6,7 +6,7 @@ import {
   DollarSign, CheckCircle2, AlertCircle, Clock,
   UserPlus, RefreshCw, ChevronLeft,
 } from 'lucide-react';
-import { calculate, fmt, type SimData } from '../lib/calculations';
+import { calculate, fmt, type SimData, INCC_MEDIO_HISTORICO } from '../lib/calculations';
 import ComparisonChart from '../components/ComparisonChart';
 import FunilContemplacao from '../components/FunilContemplacao';
 
@@ -85,6 +85,7 @@ export default function CompraeConstrucao({ onBack }: Props) {
     mesesObra: 12,
     valorVendaMercado: 1700000,
     entradaVenda: 800000,
+    inccAnual: INCC_MEDIO_HISTORICO,
   });
 
   const r = calculate(data);
@@ -183,6 +184,7 @@ function Step1({ data, set, r }: { data: SimData; set: (k: keyof SimData) => (v:
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <GoldInput label="Valor do Terreno (R$)" value={data.valorTerreno} onChange={set('valorTerreno')} />
         <GoldInput label="Valor da Construção (R$)" value={data.valorConstrucao} onChange={set('valorConstrucao')} />
+        <GoldInput label="INCC Anual (% a.a.) — teto 5%" value={data.inccAnual} onChange={set('inccAnual')} />
       </div>
       <motion.div
         initial={{ opacity: 0, scale: 0.97 }}
@@ -238,6 +240,21 @@ function Step3({ data, set, r }: { data: SimData; set: (k: keyof SimData) => (v:
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <StatCard label="Valor Investido até Contemplar" value={fmt(r.valorInvestidoAteContemplacao)} />
         <StatCard label="Saldo Devedor na Contemplação" value={fmt(r.saldoDevedorNaContemplacao)} />
+      </div>
+
+      <div className="p-5 rounded-2xl border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+        <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: '#00C864' }}>
+          Carta Atualizada (INCC {data.inccAnual.toFixed(1)}% a.a. · teto 5%)
+        </p>
+        <p className="text-2xl font-black" style={{ fontFamily: 'Montserrat', color: '#00C864' }}>
+          {fmt(r.creditoReajustadoNaContemplacao)}
+        </p>
+        <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
+          {Math.floor(data.mesContemplacao / 12)} reajuste(s) de {Math.min(data.inccAnual, 5).toFixed(2)}% · INCC médio histórico: {INCC_MEDIO_HISTORICO}% a.a.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="md:col-span-2 p-6 rounded-2xl" style={{ background: 'linear-gradient(135deg, #0D1A2E 0%, #0A1020 100%)', border: '1px solid rgba(100,150,255,0.2)' }}>
           <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: '#7EB0FF' }}>
             Nova Parcela Pós-Contemplação (c/ Seguro)

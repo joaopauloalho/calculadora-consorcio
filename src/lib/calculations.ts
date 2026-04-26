@@ -1,3 +1,18 @@
+/** INCC médio histórico (2020-2024) aplicando teto de 5% a.a. = ~4.57% a.a. */
+export const INCC_MEDIO_HISTORICO = 4.57;
+
+/**
+ * Aplica reajuste INCC discreto (a cada 12 meses) com teto de 5% a.a.
+ * @param valor - valor base
+ * @param inccAnualPercent - taxa INCC em % (ex: 4.57 = 4.57%)
+ * @param meses - número de meses decorridos
+ */
+export function aplicarReajusteINCC(valor: number, inccAnualPercent: number, meses: number): number {
+  const inccEfetivo = Math.min(inccAnualPercent, 5);
+  const anosCompletos = Math.floor(meses / 12);
+  return valor * Math.pow(1 + inccEfetivo / 100, anosCompletos);
+}
+
 export interface SimData {
   valorTerreno: number;
   valorConstrucao: number;
@@ -8,6 +23,7 @@ export interface SimData {
   mesesObra: number;
   valorVendaMercado: number;
   entradaVenda: number;
+  inccAnual: number;  // INCC % a.a. para reajuste da carta
 }
 
 export interface SimResults {
@@ -32,6 +48,7 @@ export interface SimResults {
   custoTotalAquisicaoConsorcio: number;
   lucroTotal: number;
   lucroMensalMedio: number;
+  creditoReajustadoNaContemplacao: number;
 }
 
 export function calculate(data: SimData): SimResults {
@@ -64,6 +81,7 @@ export function calculate(data: SimData): SimResults {
   const custoTotalAquisicaoConsorcio = data.entradaVenda + saldoDevedorPosObra;
   const lucroTotal = data.entradaVenda - totalDesembolsado;
   const lucroMensalMedio = lucroTotal / totalMesesInvestindo;
+  const creditoReajustadoNaContemplacao = aplicarReajusteINCC(totalCredito, data.inccAnual, data.mesContemplacao);
 
   return {
     totalCredito, totalComTaxa, parcelaCheiaOriginal, meiaParcela,
@@ -72,7 +90,7 @@ export function calculate(data: SimData): SimResults {
     totalPagoNaObra, saldoDevedorPosObra, totalDesembolsado, totalMesesInvestindo,
     mediaParcelaInvestida, parcelasRestantes, valorFinanciadoBanco,
     parcelaEstimadaBanco, totalEstimadoPagoBanco, custoTotalAquisicaoConsorcio,
-    lucroTotal, lucroMensalMedio,
+    lucroTotal, lucroMensalMedio, creditoReajustadoNaContemplacao,
   };
 }
 
@@ -141,6 +159,7 @@ export interface AluguelData {
   valorImovelFinal: number;
   rendimentoPercent: number;
   numOperacoes: number;
+  inccAnual?: number;  // opcional, default INCC_MEDIO_HISTORICO
 }
 
 export interface AluguelResults {
@@ -157,6 +176,7 @@ export interface AluguelResults {
   rendaBrutaMensal: number;
   rendaLiquidaMensal: number;
   totalInvestidoTodas: number;
+  creditoReajustadoContemplacao: number;
 }
 
 export function calculateAluguel(data: AluguelData): AluguelResults {
@@ -178,6 +198,8 @@ export function calculateAluguel(data: AluguelData): AluguelResults {
   const rendaBrutaMensal = data.numOperacoes * aluguelMensal;
   const rendaLiquidaMensal = rendaBrutaMensal;
   const totalInvestidoTodas = data.numOperacoes * totalDesembolsado;
+  const inccEfetivo = data.inccAnual ?? INCC_MEDIO_HISTORICO;
+  const creditoReajustadoContemplacao = aplicarReajusteINCC(data.valorCredito, inccEfetivo, data.mesContemplacao);
 
   return {
     totalComTaxa, parcelaCheia, meiaParcela,
@@ -185,6 +207,7 @@ export function calculateAluguel(data: AluguelData): AluguelResults {
     aluguelMensal, saldoLivreBasico, saldoComReplicacao,
     operacoesFinanciaveis, patrimonioTotal,
     rendaBrutaMensal, rendaLiquidaMensal, totalInvestidoTodas,
+    creditoReajustadoContemplacao,
   };
 }
 

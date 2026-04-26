@@ -5,7 +5,7 @@ import {
   TrendingUp, TrendingDown, CalendarDays,
   RefreshCw, CheckCircle2, AlertCircle, Repeat2, Info,
 } from 'lucide-react';
-import { calculateAluguel, fmt, type AluguelData } from '../lib/calculations';
+import { calculateAluguel, fmt, type AluguelData, INCC_MEDIO_HISTORICO } from '../lib/calculations';
 import FunilContemplacao from '../components/FunilContemplacao';
 
 const TOTAL_STEPS = 5;
@@ -94,6 +94,7 @@ export default function AluguelConsorcio({ onBack }: Props) {
     valorImovelFinal: 600000,
     rendimentoPercent: 0.005,
     numOperacoes: 3,
+    inccAnual: INCC_MEDIO_HISTORICO,
   });
 
   const r = calculateAluguel(data);
@@ -188,6 +189,7 @@ function Step1({ data, set, r }: { data: AluguelData; set: SetFn; r: Results }) 
         <GoldInput label="Valor do Crédito (R$)" value={data.valorCredito} onChange={set('valorCredito')} />
         <GoldInput label="Taxa Adm. Total (%)" value={data.taxaAdm * 100} onChange={(v) => set('taxaAdm')(v / 100)} />
         <GoldInput label="Prazo Total (meses)" value={data.prazoTotal} onChange={set('prazoTotal')} />
+        <GoldInput label="INCC Anual (% a.a.) — teto 5%" value={data.inccAnual ?? INCC_MEDIO_HISTORICO} onChange={set('inccAnual')} />
       </div>
 
       {/* Parcelas side by side */}
@@ -239,6 +241,12 @@ function Step2({ data, set, r }: { data: AluguelData; set: SetFn; r: Results }) 
           value={fmt(r.saldoDevedorNaContemplacao)}
           sub="Parcelas restantes do grupo"
         />
+      </div>
+
+      <div className="p-4 rounded-xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+        <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: '#00C864' }}>Carta Atualizada (INCC)</p>
+        <p className="text-xl font-black" style={{ fontFamily: 'Montserrat', color: '#00C864' }}>{fmt(r.creditoReajustadoContemplacao)}</p>
+        <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>INCC médio histórico: {INCC_MEDIO_HISTORICO}% a.a. (teto 5%)</p>
       </div>
 
       <motion.div
