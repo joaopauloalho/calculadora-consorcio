@@ -77,7 +77,7 @@ export default function QuitacaoFinanciamento({ onBack }: Props) {
     prazoRestanteBanco: 180,
     valorCredito: 400000,
     taxaAdm: 0.23,
-    prazoConsorcio: 180,
+    prazoConsorcio: 220,
     mesContemplacao: 30,
   });
 
