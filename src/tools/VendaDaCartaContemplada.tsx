@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft, ArrowRight, Repeat2, ChevronLeft,
   TrendingUp, TrendingDown, CalendarDays,
-  RefreshCw, DollarSign, Info,
+  RefreshCw, Info,
 } from 'lucide-react';
 import { calculateVendaCarta, fmt, type VendaCartaData } from '../lib/calculations';
 import FunilContemplacao from '../components/FunilContemplacao';
@@ -210,20 +210,6 @@ function Step1({ data, set, r }: { data: VendaCartaData; set: SetFn; r: Results 
         <GoldInput label="Taxa Adm. Total" value={data.taxaAdm * 100} onChange={(v) => { set('taxaAdm')(v / 100); set('valorParcela')(Math.round((data.valorCredito * (1 + v / 100)) / data.prazoTotal / 2)); }} suffix="%" />
         <GoldInput label="Prazo Total do Grupo" value={data.prazoTotal} onChange={(v) => { set('prazoTotal')(v); set('valorParcela')(Math.round((data.valorCredito * (1 + data.taxaAdm)) / v / 2)); }} suffix="meses" />
       </div>
-      <motion.div
-        initial={{ opacity: 0, scale: 0.97 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="p-8 rounded-3xl flex justify-between items-center"
-        style={{ background: 'linear-gradient(135deg, #1A1A00 0%, #2A2500 100%)', border: '1px solid var(--border)' }}
-      >
-        <div>
-          <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--gold)' }}>
-            Total a Pagar (c/ Taxa Adm.)
-          </p>
-          <p className="text-4xl font-black text-white" style={{ fontFamily: 'Montserrat' }}>{fmt(r.totalComTaxa)}</p>
-        </div>
-        <DollarSign size={32} style={{ color: 'var(--gold)', opacity: 0.5 }} />
-      </motion.div>
     </div>
   );
 }
@@ -269,10 +255,10 @@ function Step3({ data, set, r }: { data: VendaCartaData; set: SetFn; r: Results 
 
   return (
     <div className="space-y-8">
-      <StepHeader step={3} title="Definição do Ágio" subtitle="Informe o ágio como % do crédito. O comprador paga esse valor e assume o saldo devedor restante." />
+      <StepHeader step={3} title="Valor de Compra da Carta" subtitle="Informe o valor de compra da carta como % do crédito. O comprador paga esse valor e assume o saldo devedor restante." />
       <div className="p-6 rounded-2xl border space-y-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
         <div>
-          <Label>Ágio sobre o Crédito (%)</Label>
+          <Label>Valor de Compra da Carta (%)</Label>
           <input type="number" value={agioStr} onChange={(e) => onPercentChange(e.target.value)} />
         </div>
         <div className="flex justify-between items-center px-1">
@@ -298,7 +284,7 @@ function Step3({ data, set, r }: { data: VendaCartaData; set: SetFn; r: Results 
       </div>
       <div className="p-5 rounded-2xl border text-sm" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>
         <Info size={14} className="inline mr-2" style={{ color: 'var(--gold)' }} />
-        O <strong style={{ color: 'white' }}>ágio</strong> é o prêmio pela contemplação. O comprador paga {agioPercent}% do crédito ({fmt(data.valorVendaChave)}) e assume as parcelas restantes — ainda assim pagando menos que no banco.
+        O <strong style={{ color: 'white' }}>valor de compra da carta</strong> é o prêmio pela contemplação. O comprador paga {agioPercent}% do crédito ({fmt(data.valorVendaChave)}) e assume as parcelas restantes — ainda assim pagando menos que no banco.
       </div>
     </div>
   );
@@ -329,12 +315,6 @@ function Step4({ data, set, r }: { data: VendaCartaData; set: SetFn; r: Results 
             <p className="text-[10px] font-black uppercase mb-1" style={{ color: 'var(--text-secondary)' }}>Invest. Total</p>
             <p className="text-sm font-bold text-white">{fmt(r.totalDesembolsado)}</p>
           </div>
-          <div className="p-3 rounded-xl" style={{ background: 'rgba(193,177,118,0.08)' }}>
-            <p className="text-[10px] font-black uppercase mb-1" style={{ color: 'var(--text-secondary)' }}>ROI</p>
-            <p className="text-sm font-bold" style={{ color: isPositive ? '#00C864' : 'var(--alert)' }}>
-              {r.roiAlavancado.toFixed(1)}%
-            </p>
-          </div>
         </div>
       </div>
 
@@ -358,23 +338,13 @@ function Step4({ data, set, r }: { data: VendaCartaData; set: SetFn; r: Results 
           {fmt(r.lucroLiquido)}
         </motion.p>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t pt-8" style={{ borderColor: 'rgba(193,177,118,0.15)' }}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-8" style={{ borderColor: 'rgba(193,177,118,0.15)' }}>
           <div>
             <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--text-secondary)' }}>Capital Investido</p>
             <p className="text-lg font-black text-white" style={{ fontFamily: 'Montserrat' }}>{fmt(r.totalDesembolsado)}</p>
             <div className="flex items-center justify-center gap-1 mt-1">
               <TrendingDown size={12} style={{ color: 'var(--alert)' }} />
               <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>Saiu do bolso</span>
-            </div>
-          </div>
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--text-secondary)' }}>ROI Total</p>
-            <p className="text-lg font-black" style={{ fontFamily: 'Montserrat', color: isPositive ? '#00C864' : 'var(--alert)' }}>
-              {r.roiAlavancado.toFixed(1)}%
-            </p>
-            <div className="flex items-center justify-center gap-1 mt-1">
-              <TrendingUp size={12} style={{ color: '#00C864' }} />
-              <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>sobre capital próprio</span>
             </div>
           </div>
           <div>
