@@ -5,10 +5,10 @@ import {
   TrendingUp, TrendingDown, CalendarDays,
   RefreshCw, CheckCircle2, AlertCircle, Repeat2, Info,
 } from 'lucide-react';
-import { calculateAluguel, fmt, type AluguelData, INCC_MEDIO_HISTORICO } from '../lib/calculations';
+import { calculateAluguel, calcularCascata, fmt, type AluguelData, type CicloResult, INCC_MEDIO_HISTORICO } from '../lib/calculations';
 import FunilContemplacao from '../components/FunilContemplacao';
 
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 6;
 
 const slideVariants = {
   enter: (dir: number) => ({ x: dir > 0 ? 60 : -60, opacity: 0 }),
@@ -97,8 +97,20 @@ export default function AluguelConsorcio({ onBack }: Props) {
     inccAnual: INCC_MEDIO_HISTORICO,
   });
 
+  const [numCiclos, setNumCiclos] = useState(1);
+
   const r = calculateAluguel(data);
   const set = (key: keyof AluguelData) => (v: number) => setData((d) => ({ ...d, [key]: v }));
+
+  const valorMultiplier = data.valorCredito > 0 ? data.valorImovelFinal / data.valorCredito : 1;
+  const ciclos = calcularCascata(
+    { meiaParcela: r.meiaParcela, credito: data.valorCredito, aluguelMensal: r.aluguelMensal, parcelaCheia: r.parcelaCheia },
+    data.prazoTotal,
+    data.taxaAdm,
+    valorMultiplier,
+    data.rendimentoPercent,
+    numCiclos,
+  );
 
   const goNext = () => { setDir(1); setStep((s) => Math.min(s + 1, TOTAL_STEPS)); };
   const goPrev = () => { setDir(-1); setStep((s) => Math.max(s - 1, 1)); };
@@ -138,6 +150,7 @@ export default function AluguelConsorcio({ onBack }: Props) {
             {step === 3 && <Step3 data={data} set={set} r={r} />}
             {step === 4 && <Step4 data={data} r={r} />}
             {step === 5 && <Step5 data={data} set={set} r={r} />}
+            {step === 6 && <Step6 ciclos={ciclos} numCiclos={numCiclos} setNumCiclos={setNumCiclos} pBolso={r.meiaParcela} />}
           </motion.div>
         </AnimatePresence>
       </div>
@@ -477,6 +490,160 @@ function Step5({ data, set, r }: { data: AluguelData; set: SetFn; r: Results }) 
           </span>
         </div>
       </motion.div>
+    </div>
+  );
+}
+
+// ─── Step 6: Cascata de Alavancagem ──────────────────────────────────────────
+
+function CicloCard({ c, pBolso, saldoAcumuladoAnterior }: { c: CicloResult; pBolso: number; saldoAcumuladoAnterior: number }) {
+  const positivo = c.saldo >= 0;
+  const isBase = c.numero === 1;
+  return (
+    <div className="rounded-2xl border overflow-hidden" style={{ background: 'var(--bg-card)', borderColor: isBase ? 'rgba(193,177,118,0.35)' : 'var(--border)' }}>
+      {/* Header */}
+      <div className="px-5 py-3 flex items-center justify-between" style={{ background: isBase ? 'rgba(193,177,118,0.08)' : 'rgba(255,255,255,0.03)' }}>
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black" style={{ background: isBase ? 'var(--gold)' : 'rgba(193,177,118,0.2)', color: isBase ? 'black' : 'var(--gold)' }}>
+            {c.numero}
+          </div>
+          <span className="text-xs font-black uppercase tracking-widest" style={{ color: isBase ? 'var(--gold)' : 'var(--text-secondary)' }}>
+            {isBase ? 'Ciclo Base' : `Ciclo ${c.numero}`}
+          </span>
+        </div>
+        {!isBase && (
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: 'rgba(193,177,118,0.1)', color: 'var(--text-secondary)' }}>
+            P_bolso {fmt(pBolso)} + saldo {saldoAcumuladoAnterior >= 0 ? '+' : ''}{fmt(saldoAcumuladoAnterior)}
+          </span>
+        )}
+      </div>
+
+      {/* Body */}
+      <div className="p-5 space-y-3">
+        {/* Meia parcela → Crédito */}
+        <div className="flex items-center gap-3">
+          <div className="flex-1 p-3 rounded-xl text-center" style={{ background: 'rgba(193,177,118,0.06)', border: '1px solid rgba(193,177,118,0.15)' }}>
+            <p className="text-[9px] font-bold uppercase tracking-widest mb-0.5" style={{ color: 'var(--gold)' }}>Meia Parcela</p>
+            <p className="text-base font-black text-white" style={{ fontFamily: 'Montserrat' }}>{fmt(c.meiaParcela)}</p>
+          </div>
+          <ArrowRight size={14} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+          <div className="flex-1 p-3 rounded-xl text-center" style={{ background: 'rgba(193,177,118,0.06)', border: '1px solid rgba(193,177,118,0.15)' }}>
+            <p className="text-[9px] font-bold uppercase tracking-widest mb-0.5" style={{ color: 'var(--gold)' }}>Crédito</p>
+            <p className="text-base font-black text-white" style={{ fontFamily: 'Montserrat' }}>{fmt(c.credito)}</p>
+          </div>
+        </div>
+
+        {/* Aluguel vs Parcela Cheia */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="p-3 rounded-xl" style={{ background: 'rgba(0,200,100,0.07)', border: '1px solid rgba(0,200,100,0.15)' }}>
+            <p className="text-[9px] font-bold uppercase tracking-widest mb-0.5" style={{ color: '#00C864' }}>Aluguel</p>
+            <p className="text-sm font-black" style={{ color: '#00C864' }}>+{fmt(c.aluguelMensal)}</p>
+          </div>
+          <div className="p-3 rounded-xl" style={{ background: 'rgba(204,51,102,0.07)', border: '1px solid rgba(204,51,102,0.15)' }}>
+            <p className="text-[9px] font-bold uppercase tracking-widest mb-0.5" style={{ color: 'var(--alert)' }}>Parcela Cheia</p>
+            <p className="text-sm font-black" style={{ color: 'var(--alert)' }}>−{fmt(c.parcelaCheia)}</p>
+          </div>
+        </div>
+
+        {/* Saldo */}
+        <div className="flex items-center justify-between px-4 py-3 rounded-xl border" style={{ background: positivo ? 'rgba(0,200,100,0.06)' : 'rgba(204,51,102,0.06)', borderColor: positivo ? 'rgba(0,200,100,0.2)' : 'rgba(204,51,102,0.2)' }}>
+          <span className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--text-secondary)' }}>Saldo mensal</span>
+          <span className="text-lg font-black" style={{ fontFamily: 'Montserrat', color: positivo ? '#00C864' : 'var(--alert)' }}>
+            {positivo ? '+' : ''}{fmt(c.saldo)}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Step6({ ciclos, numCiclos, setNumCiclos, pBolso }: {
+  ciclos: CicloResult[];
+  numCiclos: number;
+  setNumCiclos: (n: number) => void;
+  pBolso: number;
+}) {
+  const MAX_CICLOS = 4;
+  const saldoTotal = ciclos.reduce((acc, c) => acc + c.saldo, 0);
+
+  return (
+    <div className="space-y-6">
+      <div className="mb-2">
+        <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--gold)' }}>
+          Etapa 6 de {TOTAL_STEPS}
+        </p>
+        <h2 className="text-2xl md:text-3xl font-black text-white mb-2" style={{ fontFamily: 'Montserrat' }}>
+          Cascata de<br /><span style={{ color: 'var(--gold)' }}>Alavancagem</span>
+        </h2>
+        <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+          Cada contemplação libera fluxo para financiar a próxima carta. O saldo anterior vira meia parcela da próxima operação.
+        </p>
+      </div>
+
+      {/* Cards em cascata */}
+      <div className="space-y-3">
+        {ciclos.map((c, idx) => {
+          const saldoAcumuladoAnterior = ciclos.slice(0, idx).reduce((acc, x) => acc + x.saldo, 0);
+          return (
+            <div key={c.numero}>
+              <CicloCard c={c} pBolso={pBolso} saldoAcumuladoAnterior={saldoAcumuladoAnterior} />
+              {/* Conector entre ciclos */}
+              {idx < ciclos.length - 1 && (
+                <div className="flex items-center justify-center py-1">
+                  <div className="flex flex-col items-center gap-0.5">
+                    <div className="w-px h-3" style={{ background: 'rgba(193,177,118,0.3)' }} />
+                    <div className="text-[9px] font-bold px-3 py-0.5 rounded-full uppercase tracking-widest" style={{ background: 'rgba(193,177,118,0.08)', color: 'var(--gold)', border: '1px solid rgba(193,177,118,0.2)' }}>
+                      ↓ reutiliza fluxo
+                    </div>
+                    <div className="w-px h-3" style={{ background: 'rgba(193,177,118,0.3)' }} />
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Botão adicionar ciclo */}
+      {numCiclos < MAX_CICLOS && (
+        <button
+          onClick={() => setNumCiclos(numCiclos + 1)}
+          className="w-full py-4 rounded-2xl border-2 border-dashed font-black text-sm uppercase tracking-widest transition-all hover:opacity-80 active:scale-98"
+          style={{ borderColor: 'rgba(193,177,118,0.3)', color: 'var(--gold)', background: 'transparent' }}
+        >
+          + Adicionar Ciclo {numCiclos + 1}
+        </button>
+      )}
+      {numCiclos > 1 && (
+        <button
+          onClick={() => setNumCiclos(numCiclos - 1)}
+          className="w-full py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all hover:opacity-70"
+          style={{ color: 'var(--text-secondary)' }}
+        >
+          Remover último ciclo
+        </button>
+      )}
+
+      {/* Resumo final */}
+      {numCiclos > 1 && (
+        <motion.div
+          key={numCiclos}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-6 rounded-2xl"
+          style={{ background: saldoTotal >= 0 ? 'linear-gradient(135deg, #001A0A, #000D05)' : 'linear-gradient(135deg, #1A0005, #0D0002)', border: `1px solid ${saldoTotal >= 0 ? 'rgba(0,200,100,0.25)' : 'rgba(204,51,102,0.25)'}` }}
+        >
+          <p className="text-xs font-black uppercase tracking-widest mb-1" style={{ color: saldoTotal >= 0 ? '#00C864' : 'var(--alert)' }}>
+            Fluxo Líquido com {numCiclos} Ciclos
+          </p>
+          <p className="text-4xl font-black" style={{ fontFamily: 'Montserrat', color: saldoTotal >= 0 ? '#00C864' : 'var(--alert)' }}>
+            {saldoTotal >= 0 ? '+' : ''}{fmt(saldoTotal)}<span className="text-base font-bold">/mês</span>
+          </p>
+          <p className="text-xs mt-2" style={{ color: 'var(--text-secondary)' }}>
+            Soma dos saldos de todos os ciclos após contemplação
+          </p>
+        </motion.div>
+      )}
     </div>
   );
 }

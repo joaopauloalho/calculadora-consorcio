@@ -535,3 +535,55 @@ export function calculateQuickCalc(data: QuickCalcData): QuickCalcResults {
     valorVenda, lucroLiquido, capitalMedioEmpregado, rentabilidadeMensal,
   };
 }
+
+// ─── Cascata de Alavancagem ───────────────────────────────────────────────────
+
+export interface CicloResult {
+  numero: number;
+  meiaParcela: number;
+  credito: number;
+  aluguelMensal: number;
+  parcelaCheia: number;
+  saldo: number; // aluguel - parcelaCheia (positivo = sobra, negativo = falta)
+}
+
+/**
+ * Calcula N ciclos de alavancagem em cascata.
+ *
+ * Motor: P_meia(n) = P_bolso + Σ S(i) para i=1..n-1
+ *        C(n) = P_meia(n) × 2 × prazo / (1 + taxaAdm)
+ *        A(n) = C(n) × valorMultiplier × rendimento
+ *        S(n) = A(n) − P_cheia(n)
+ */
+export function calcularCascata(
+  base: { meiaParcela: number; credito: number; aluguelMensal: number; parcelaCheia: number },
+  prazoTotal: number,
+  taxaAdm: number,
+  valorMultiplier: number,
+  rendimentoPercent: number,
+  numCiclos: number,
+): CicloResult[] {
+  const pBolso = base.meiaParcela;
+  const ciclos: CicloResult[] = [
+    {
+      numero: 1,
+      meiaParcela: base.meiaParcela,
+      credito: base.credito,
+      aluguelMensal: base.aluguelMensal,
+      parcelaCheia: base.parcelaCheia,
+      saldo: base.aluguelMensal - base.parcelaCheia,
+    },
+  ];
+
+  for (let i = 2; i <= numCiclos; i++) {
+    const somaS = ciclos.reduce((acc, c) => acc + c.saldo, 0);
+    const meiaParcela = pBolso + somaS;
+    const parcelaCheia = 2 * meiaParcela;
+    const credito = parcelaCheia * prazoTotal / (1 + taxaAdm);
+    const aluguelMensal = credito * valorMultiplier * rendimentoPercent;
+    const saldo = aluguelMensal - parcelaCheia;
+    ciclos.push({ numero: i, meiaParcela, credito, aluguelMensal, parcelaCheia, saldo });
+  }
+
+  return ciclos;
+}
