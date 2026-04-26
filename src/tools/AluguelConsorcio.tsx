@@ -89,7 +89,7 @@ export default function AluguelConsorcio({ onBack }: Props) {
   const [data, setData] = useState<AluguelData>({
     valorCredito: 500000,
     taxaAdm: 0.23,
-    prazoTotal: 180,
+    prazoTotal: 220,
     mesContemplacao: 30,
     valorImovelFinal: 600000,
     rendimentoPercent: 0.005,
@@ -298,11 +298,6 @@ function Step3({ data, set, r }: { data: AluguelData; set: SetFn; r: Results }) 
         </div>
         <TrendingUp size={40} style={{ color: '#00C864', opacity: 0.4 }} />
       </motion.div>
-
-      <div className="p-5 rounded-2xl border text-sm" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>
-        <Info size={14} className="inline mr-2" style={{ color: 'var(--gold)' }} />
-        Referência de mercado: imóveis residenciais rendem entre <strong style={{ color: 'white' }}>0,35% e 0,60% a.m.</strong> Comerciais podem chegar a 0,80%.
-      </div>
     </div>
   );
 }
