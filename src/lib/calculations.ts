@@ -192,6 +192,7 @@ export interface QuitacaoData {
   taxaAdm: number;
   prazoConsorcio: number;
   mesContemplacao: number;
+  cetBanco?: number;   // CET banco % a.a. (opcional)
 }
 
 export interface QuitacaoResults {

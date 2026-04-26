@@ -164,6 +164,9 @@ type SetFn = (k: keyof QuitacaoData) => (v: number) => void;
 type Results = ReturnType<typeof calculateQuitacao>;
 
 function Step1({ data, set, r }: { data: QuitacaoData; set: SetFn; r: Results }) {
+  const [cetStr, setCetStr] = useState(data.cetBanco ? String(data.cetBanco) : '');
+  const cetBanco = parseFloat(cetStr) || 0;
+
   return (
     <div className="space-y-8">
       <StepHeader
@@ -182,14 +185,64 @@ function Step1({ data, set, r }: { data: QuitacaoData; set: SetFn; r: Results })
           <BRLInput value={data.parcelaBanco} onChange={set('parcelaBanco')} />
         </div>
         <div className="md:col-span-2">
-          <Label>Prazo Restante (meses)</Label>
-          <input
-            type="number"
-            inputMode="numeric"
-            value={data.prazoRestanteBanco === 0 ? '' : data.prazoRestanteBanco}
-            onChange={(e) => set('prazoRestanteBanco')(e.target.value === '' ? 0 : Number(e.target.value))}
-          />
+          <Label>Prazo Restante do Financiamento</Label>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <input
+                type="number"
+                inputMode="numeric"
+                placeholder="Anos"
+                value={Math.floor(data.prazoRestanteBanco / 12) === 0 ? '' : Math.floor(data.prazoRestanteBanco / 12)}
+                onChange={(e) => {
+                  const anos = e.target.value === '' ? 0 : Number(e.target.value);
+                  const mesesExtras = data.prazoRestanteBanco % 12;
+                  set('prazoRestanteBanco')(anos * 12 + mesesExtras);
+                }}
+              />
+              <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>anos</p>
+            </div>
+            <div>
+              <input
+                type="number"
+                inputMode="numeric"
+                placeholder="Meses"
+                min={0}
+                max={11}
+                value={data.prazoRestanteBanco % 12 === 0 ? '' : data.prazoRestanteBanco % 12}
+                onChange={(e) => {
+                  const meses = e.target.value === '' ? 0 : Math.min(11, Number(e.target.value));
+                  const anos = Math.floor(data.prazoRestanteBanco / 12);
+                  set('prazoRestanteBanco')(anos * 12 + meses);
+                }}
+              />
+              <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>meses adicionais</p>
+            </div>
+          </div>
+          <p className="text-xs mt-2" style={{ color: 'var(--text-secondary)' }}>
+            = {data.prazoRestanteBanco} meses no total
+          </p>
         </div>
+      </div>
+
+      <div>
+        <Label>Taxa CET do Banco (% a.a.) — opcional</Label>
+        <input
+          type="number"
+          inputMode="decimal"
+          placeholder="Ex: 10.5"
+          value={cetStr}
+          step="0.1"
+          onChange={(e) => {
+            setCetStr(e.target.value);
+            const v = parseFloat(e.target.value) || 0;
+            set('cetBanco' as keyof QuitacaoData)(v);
+          }}
+        />
+        {cetBanco > 0 && (
+          <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
+            {(cetBanco / 12).toFixed(3)}% a.m. · seu financiamento custa {cetBanco.toFixed(2)}% ao ano efetivo
+          </p>
+        )}
       </div>
 
       <div className="rounded-2xl overflow-hidden border" style={{ borderColor: 'rgba(204,51,102,0.3)' }}>
