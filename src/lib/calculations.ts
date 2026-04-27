@@ -1,6 +1,15 @@
 /** INCC médio histórico (2020-2024) aplicando teto de 5% a.a. = ~4.57% a.a. */
 export const INCC_MEDIO_HISTORICO = 4.57;
 
+/** Taxa de vacância aplicada sobre renda bruta de aluguel (IR não incluído) */
+const VACANCIA = 0.05;
+
+/** Parâmetros de referência do financiamento bancário (Caixa SAC médio 2024) */
+const PRAZO_BANCO_MESES = 360;
+const TAXA_JUROS_BANCO_MENSAL = 0.0087;   // 0,87% a.m.
+const SEGURO_COND_MENSAL = 450;           // seguro + condomínio estimado (R$)
+const CUSTO_TOTAL_BANCO_MULT = 2.85;      // custo total ≈ 2,85× o crédito
+
 /**
  * Aplica reajuste INCC discreto (a cada 12 meses) com teto de 5% a.a.
  * @param valor - valor base
@@ -75,10 +84,10 @@ export function calculate(data: SimData): SimResults {
   const parcelasRestantes = Math.max(0, data.prazoTotal - data.mesContemplacao - data.mesesObra);
   const valorFinanciadoBanco = Math.max(0, data.valorVendaMercado - data.entradaVenda);
 
-  const amortizacaoMensal = valorFinanciadoBanco / 360;
-  const jurosMensaisIniciais = valorFinanciadoBanco * 0.0087;
-  const parcelaEstimadaBanco = valorFinanciadoBanco > 0 ? amortizacaoMensal + jurosMensaisIniciais + 450 : 0;
-  const totalEstimadoPagoBanco = valorFinanciadoBanco * 2.85;
+  const amortizacaoMensal = valorFinanciadoBanco / PRAZO_BANCO_MESES;
+  const jurosMensaisIniciais = valorFinanciadoBanco * TAXA_JUROS_BANCO_MENSAL;
+  const parcelaEstimadaBanco = valorFinanciadoBanco > 0 ? amortizacaoMensal + jurosMensaisIniciais + SEGURO_COND_MENSAL : 0;
+  const totalEstimadoPagoBanco = valorFinanciadoBanco * CUSTO_TOTAL_BANCO_MULT;
 
   const custoTotalAquisicaoConsorcio = data.entradaVenda + saldoDevedorPosObra;
   const lucroTotal = data.entradaVenda - totalDesembolsado;
@@ -115,7 +124,7 @@ export interface VendaCartaData {
   taxaAdm: number;
   prazoTotal: number;
   mesContemplacao: number;
-  valorVendaChave: number;
+  agioPercent: number;  // % do crédito atualizado; valorVendaChave é derivado
   inccAnual: number;   // INCC % a.a. (ex: 3.5 significa 3.5% a.a.)
 }
 
@@ -132,6 +141,7 @@ export interface VendaCartaResults {
   economiaTotalComprador: number;
   rentabilidadeMensal: number;
   valorCreditoAtualizado: number;   // valor da carta corrigido pelo INCC até o mês de contemplação
+  valorVendaChave: number;          // agioPercent % de valorCreditoAtualizado
 }
 
 export function calculateVendaCarta(data: VendaCartaData): VendaCartaResults {
@@ -141,15 +151,16 @@ export function calculateVendaCarta(data: VendaCartaData): VendaCartaResults {
   const totalDesembolsado = data.mesContemplacao * data.valorParcela;
   const saldoDevedorNaContemplacao = Math.max(0, totalComTaxa - totalDesembolsado);
 
-  const lucroLiquido = data.valorVendaChave - totalDesembolsado;
+  const valorVendaChave = valorCreditoAtualizado * data.agioPercent / 100;
+  const lucroLiquido = valorVendaChave - totalDesembolsado;
   const roiAlavancado = totalDesembolsado > 0 ? (lucroLiquido / totalDesembolsado) * 100 : 0;
   const lucroMensalMedio = data.mesContemplacao > 0 ? lucroLiquido / data.mesContemplacao : 0;
 
-  const custoTotalComprador = data.valorVendaChave + saldoDevedorNaContemplacao;
-  const amortizacao = data.valorCredito / 360;
-  const juros = data.valorCredito * 0.0087;
-  const parcelaEstimadaBanco = amortizacao + juros + 450;
-  const totalEstimadoPagoBanco = data.valorCredito * 2.85;
+  const custoTotalComprador = valorVendaChave + saldoDevedorNaContemplacao;
+  const amortizacao = data.valorCredito / PRAZO_BANCO_MESES;
+  const juros = data.valorCredito * TAXA_JUROS_BANCO_MENSAL;
+  const parcelaEstimadaBanco = amortizacao + juros + SEGURO_COND_MENSAL;
+  const totalEstimadoPagoBanco = data.valorCredito * CUSTO_TOTAL_BANCO_MULT;
   const economiaTotalComprador = totalEstimadoPagoBanco - custoTotalComprador;
 
   // Capital médio empregado = totalDesembolsado/2 (aportes graduais: começa em 0, termina no total)
@@ -162,7 +173,7 @@ export function calculateVendaCarta(data: VendaCartaData): VendaCartaResults {
     totalComTaxa, totalDesembolsado, saldoDevedorNaContemplacao,
     lucroLiquido, roiAlavancado, lucroMensalMedio,
     custoTotalComprador, parcelaEstimadaBanco, totalEstimadoPagoBanco,
-    economiaTotalComprador, rentabilidadeMensal, valorCreditoAtualizado,
+    economiaTotalComprador, rentabilidadeMensal, valorCreditoAtualizado, valorVendaChave,
   };
 }
 
@@ -211,7 +222,7 @@ export function calculateAluguel(data: AluguelData): AluguelResults {
 
   const patrimonioTotal = data.numOperacoes * data.valorImovelFinal;
   const rendaBrutaMensal = data.numOperacoes * aluguelMensal;
-  const rendaLiquidaMensal = rendaBrutaMensal;
+  const rendaLiquidaMensal = rendaBrutaMensal * (1 - VACANCIA); // deduz vacância 5%; IR não incluído
   const totalInvestidoTodas = data.numOperacoes * totalDesembolsado;
   const inccEfetivo = data.inccAnual ?? INCC_MEDIO_HISTORICO;
   const creditoReajustadoContemplacao = aplicarReajusteINCC(data.valorCredito, inccEfetivo, data.mesContemplacao);
@@ -353,17 +364,6 @@ export function calculateQuitacao(data: QuitacaoData): QuitacaoResults {
   };
 }
 
-export function contemplationProbability(
-  month: number,
-  prazoTotal: number,
-  saudeGrupo: number,
-  pontualidade: number
-): number {
-  const activeMembers = prazoTotal * saudeGrupo;
-  const myEligibility = pontualidade >= 0.8 ? 1 : pontualidade * 0.6;
-  const monthlyRate = myEligibility / activeMembers;
-  return Math.min(0.99, 1 - Math.pow(1 - monthlyRate, month));
-}
 
 export const fmt = (v: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
@@ -518,8 +518,8 @@ export function calculateQuickCalc(data: QuickCalcData): QuickCalcResults {
   const correcaoIndice = data.assetType === 'imovel' ? 'INCC' : 'IPCA';
   const creditoAtualizado = data.valorCredito * Math.pow(1 + correcaoAnual, data.mesContemplacao / 12);
 
-  // Ágio = % sobre o valor do crédito (o que o vendedor recebe)
-  const valorVenda = data.valorCredito * (data.percentAgio / 100);
+  // Ágio = % sobre o crédito atualizado na contemplação (valor do dia)
+  const valorVenda = creditoAtualizado * (data.percentAgio / 100);
   const lucroLiquido = valorVenda - totalInvestido;
   const capitalMedioEmpregado = totalInvestido / 2;
   const rentabilidadeMensal =
@@ -577,7 +577,7 @@ export function calcularCascata(
 
   for (let i = 2; i <= numCiclos; i++) {
     const somaS = ciclos.reduce((acc, c) => acc + c.saldo, 0);
-    const meiaParcela = pBolso + somaS;
+    const meiaParcela = Math.max(0, pBolso + somaS);
     const parcelaCheia = 2 * meiaParcela;
     const credito = parcelaCheia * prazoTotal / (1 + taxaAdm);
     const aluguelMensal = credito * valorMultiplier * rendimentoPercent;

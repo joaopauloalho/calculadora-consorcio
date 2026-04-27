@@ -9,23 +9,13 @@ import {
   type QuickCalcData,
 } from '../lib/calculations';
 import BRLInput from '../components/BRLInput';
+import { Label } from '../components/shared';
 
 const IMOVEL_PRAZOS = [220];
 const VEICULO_PRAZOS = [48, 100, 120];
 
 interface Props {
   onBack: () => void;
-}
-
-function Label({ children }: { children: React.ReactNode }) {
-  return (
-    <p
-      className="text-xs font-bold uppercase tracking-widest mb-2"
-      style={{ color: 'var(--text-secondary)' }}
-    >
-      {children}
-    </p>
-  );
 }
 
 function AnimatedValue({ value }: { value: string }) {
@@ -422,6 +412,7 @@ export default function QuickCalc({ onBack }: Props) {
                     <p className="text-xs mt-2" style={{ color: 'var(--text-secondary)' }}>
                       Valor de venda:{' '}
                       <strong style={{ color: 'var(--gold)' }}>{fmt(r.valorVenda)}</strong>
+                      {' '}({data.percentAgio}% de {fmt(r.creditoAtualizado)} atualizado)
                     </p>
                   </div>
                 </motion.div>
