@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft, ArrowRight, Home, ChevronLeft,
@@ -7,77 +7,9 @@ import {
 } from 'lucide-react';
 import { calculateAluguel, calcularCascata, fmt, type AluguelData, type CicloResult, INCC_MEDIO_HISTORICO } from '../lib/calculations';
 import FunilContemplacao from '../components/FunilContemplacao';
+import { Label, StatCard, GoldInput, ProgressDots, StepHeader, slideVariants } from '../components/shared';
 
 const TOTAL_STEPS = 6;
-
-const slideVariants = {
-  enter: (dir: number) => ({ x: dir > 0 ? 60 : -60, opacity: 0 }),
-  center: { x: 0, opacity: 1 },
-  exit: (dir: number) => ({ x: dir > 0 ? -60 : 60, opacity: 0 }),
-};
-
-function Label({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--text-secondary)' }}>
-      {children}
-    </p>
-  );
-}
-
-function StatCard({ label, value, sub, color }: { label: string; value: string; sub?: string; color?: string }) {
-  return (
-    <div className="p-5 rounded-2xl border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-      <Label>{label}</Label>
-      <p className="text-2xl font-black" style={{ fontFamily: 'Montserrat', color: color ?? 'white' }}>{value}</p>
-      {sub && <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>{sub}</p>}
-    </div>
-  );
-}
-
-function GoldInput({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
-  return (
-    <div>
-      <Label>{label}</Label>
-      <input
-        type="number"
-        value={value === 0 ? '' : value}
-        onChange={(e) => onChange(e.target.value === '' ? 0 : Number(e.target.value))}
-      />
-    </div>
-  );
-}
-
-function ProgressDots({ step }: { step: number }) {
-  return (
-    <div className="flex items-center gap-2">
-      {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
-        <div
-          key={i}
-          className="rounded-full transition-all duration-500"
-          style={{
-            width: i === step - 1 ? 24 : 8,
-            height: 8,
-            background: i < step ? 'var(--gold)' : i === step - 1 ? 'var(--gold)' : 'rgba(193,177,118,0.2)',
-          }}
-        />
-      ))}
-    </div>
-  );
-}
-
-function StepHeader({ step, title, subtitle }: { step: number; title: string; subtitle: string }) {
-  return (
-    <div className="mb-2">
-      <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--gold)' }}>
-        Etapa {step} de {TOTAL_STEPS}
-      </p>
-      <h2 className="text-2xl md:text-3xl font-black text-white mb-2" style={{ fontFamily: 'Montserrat' }}>
-        {title}
-      </h2>
-      <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{subtitle}</p>
-    </div>
-  );
-}
 
 interface Props {
   onBack: () => void;
@@ -137,7 +69,7 @@ export default function AluguelConsorcio({ onBack }: Props) {
               Aluguel com <span style={{ color: 'var(--gold)' }}>Consórcio</span>
             </span>
           </div>
-          <ProgressDots step={step} />
+          <ProgressDots step={step} totalSteps={TOTAL_STEPS} />
         </div>
       </nav>
 
@@ -156,8 +88,8 @@ export default function AluguelConsorcio({ onBack }: Props) {
             {step === 2 && <Step2 data={data} set={set} r={r} />}
             {step === 3 && <Step3 data={data} set={set} r={r} />}
             {step === 4 && <Step4 data={data} r={r} />}
-            {step === 5 && <Step6 ciclos={ciclos} numCiclos={numCiclos} setNumCiclos={setNumCiclos} pBolso={r.meiaParcela} />}
-            {step === 6 && <Step5 data={data} set={set} r={r} />}
+            {step === 5 && <Step5 ciclos={ciclos} numCiclos={numCiclos} setNumCiclos={setNumCiclos} pBolso={r.meiaParcela} />}
+            {step === 6 && <Step6 data={data} set={set} r={r} ciclos={ciclos} numCiclos={numCiclos} setNumCiclos={setNumCiclos} valorMultiplier={valorMultiplier} />}
           </motion.div>
         </AnimatePresence>
       </div>
@@ -203,7 +135,7 @@ type Results = ReturnType<typeof calculateAluguel>;
 function Step1({ data, set, r }: { data: AluguelData; set: SetFn; r: Results }) {
   return (
     <div className="space-y-8">
-      <StepHeader step={1} title="Dados do Crédito" subtitle="Defina o crédito e veja as duas parcelas: meia (até contemplar) e cheia (após contemplação, quando o imóvel já rende)." />
+      <StepHeader step={1} totalSteps={TOTAL_STEPS} title="Dados do Crédito" subtitle="Defina o crédito e veja as duas parcelas: meia (até contemplar) e cheia (após contemplação, quando o imóvel já rende)." />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <GoldInput label="Valor do Crédito (R$)" value={data.valorCredito} onChange={set('valorCredito')} />
@@ -241,7 +173,7 @@ function Step1({ data, set, r }: { data: AluguelData; set: SetFn; r: Results }) 
 function Step2({ data, set, r }: { data: AluguelData; set: SetFn; r: Results }) {
   return (
     <div className="space-y-8">
-      <StepHeader step={2} title="Simulação de Contemplação" subtitle="Defina o mês estimado de contemplação e veja o capital aportado até o imóvel ficar pronto." />
+      <StepHeader step={2} totalSteps={TOTAL_STEPS} title="Simulação de Contemplação" subtitle="Defina o mês estimado de contemplação e veja o capital aportado até o imóvel ficar pronto." />
 
       <FunilContemplacao
         prazoTotal={data.prazoTotal}
@@ -298,7 +230,7 @@ function Step3({ data, set, r }: { data: AluguelData; set: SetFn; r: Results }) 
 
   return (
     <div className="space-y-8">
-      <StepHeader step={3} title="Imóvel e Rendimento" subtitle="Informe o valor final do imóvel após obra ou reforma, e a taxa de aluguel mensal esperada." />
+      <StepHeader step={3} totalSteps={TOTAL_STEPS} title="Imóvel e Rendimento" subtitle="Informe o valor final do imóvel após obra ou reforma, e a taxa de aluguel mensal esperada." />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <GoldInput label="Valor Final do Imóvel (R$)" value={data.valorImovelFinal} onChange={set('valorImovelFinal')} />
@@ -335,7 +267,7 @@ function Step4({ data, r }: { data: AluguelData; r: Results }) {
 
   return (
     <div className="space-y-6">
-      <StepHeader step={4} title="Fluxo Mensal" subtitle="A meia parcela já era paga antes da contemplação — o custo incremental real é apenas o acréscimo de meia→cheia." />
+      <StepHeader step={4} totalSteps={TOTAL_STEPS} title="Fluxo Mensal" subtitle="A meia parcela já era paga antes da contemplação — o custo incremental real é apenas o acréscimo de meia→cheia." />
 
       {/* Aluguel vs Incremento */}
       <div className="rounded-2xl overflow-hidden border" style={{ borderColor: 'var(--border)' }}>
@@ -398,35 +330,48 @@ function Step4({ data, r }: { data: AluguelData; r: Results }) {
   );
 }
 
-function Step5({ data, set, r }: { data: AluguelData; set: SetFn; r: Results }) {
+function Step6({ data, r, ciclos, numCiclos, setNumCiclos, valorMultiplier }: {
+  data: AluguelData;
+  set: SetFn;
+  r: Results;
+  ciclos: CicloResult[];
+  numCiclos: number;
+  setNumCiclos: (n: number) => void;
+  valorMultiplier: number;
+}) {
+  const MAX_CICLOS = 4;
+  const patrimonioTotal = ciclos.reduce((sum, c) => sum + c.credito * valorMultiplier, 0);
+  const rendaBruta = ciclos.reduce((sum, c) => sum + c.aluguelMensal, 0);
+  const rendaLiquida = rendaBruta * 0.95;
+
   return (
     <div className="space-y-8">
-      <StepHeader step={6} title="Patrimônio e Renda Final" subtitle="Projete quantas operações você deseja acumular e veja o patrimônio e renda passiva após quitação total." />
+      <StepHeader step={6} totalSteps={TOTAL_STEPS} title="Patrimônio e Renda Final" subtitle="Projete quantas operações você deseja acumular e veja o patrimônio e renda passiva após quitação total." />
 
-      {/* Slider de operações */}
+      {/* Slider de operações — vinculado ao numCiclos do Step 5 */}
       <div className="p-6 rounded-2xl border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
         <div className="flex justify-between items-center mb-3">
           <p className="text-xs font-black uppercase tracking-widest" style={{ color: 'var(--gold)' }}>
             Número de Operações
           </p>
           <span className="text-sm font-black px-3 py-1 rounded-full" style={{ background: 'var(--gold-dim)', color: 'var(--gold)' }}>
-            {data.numOperacoes} imóveis
+            {numCiclos} imóveis
           </span>
         </div>
         <input
-          type="range" min={1} max={10}
-          value={data.numOperacoes}
-          onChange={(e) => set('numOperacoes')(Number(e.target.value))}
+          type="range" min={1} max={MAX_CICLOS}
+          value={numCiclos}
+          onChange={(e) => setNumCiclos(Number(e.target.value))}
           className="w-full"
         />
         <div className="flex justify-between mt-1">
           <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>1 imóvel</span>
-          <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>10 imóveis</span>
+          <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>{MAX_CICLOS} imóveis</span>
         </div>
 
-        {/* Mini cards de cada op */}
+        {/* Mini cards usando os créditos reais de cada ciclo da cascata */}
         <div className="flex gap-2 mt-5 flex-wrap">
-          {Array.from({ length: data.numOperacoes }).map((_, i) => (
+          {ciclos.map((c, i) => (
             <div
               key={i}
               className="flex-1 min-w-[60px] p-3 rounded-xl text-center"
@@ -434,15 +379,15 @@ function Step5({ data, set, r }: { data: AluguelData; set: SetFn; r: Results }) 
             >
               <Home size={14} className="mx-auto mb-1" style={{ color: 'var(--gold)' }} />
               <p className="text-[10px] font-bold" style={{ color: 'var(--text-secondary)' }}>Op.{i + 1}</p>
-              <p className="text-[10px] font-black" style={{ color: 'var(--gold)' }}>{fmt(data.valorImovelFinal)}</p>
+              <p className="text-[10px] font-black" style={{ color: 'var(--gold)' }}>{fmt(c.credito * valorMultiplier)}</p>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Patrimônio total */}
+      {/* Patrimônio total calculado a partir dos ciclos */}
       <motion.div
-        key={data.numOperacoes}
+        key={numCiclos}
         initial={{ scale: 0.96, opacity: 0.8 }}
         animate={{ scale: 1, opacity: 1 }}
         className="p-8 md:p-12 rounded-[2rem] text-center"
@@ -452,19 +397,19 @@ function Step5({ data, set, r }: { data: AluguelData; set: SetFn; r: Results }) 
           Patrimônio Total Acumulado
         </p>
         <motion.p
-          key={r.patrimonioTotal}
+          key={patrimonioTotal}
           initial={{ y: 10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           className="text-5xl md:text-7xl font-black mb-8"
           style={{ fontFamily: 'Montserrat', color: 'var(--gold)' }}
         >
-          {fmt(r.patrimonioTotal)}
+          {fmt(patrimonioTotal)}
         </motion.p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t pt-8" style={{ borderColor: 'rgba(193,177,118,0.15)' }}>
           <div>
             <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--text-secondary)' }}>Total Aportado</p>
-            <p className="text-lg font-black text-white" style={{ fontFamily: 'Montserrat' }}>{fmt(r.totalInvestidoTodas)}</p>
+            <p className="text-lg font-black text-white" style={{ fontFamily: 'Montserrat' }}>{fmt(r.totalDesembolsado)}</p>
             <div className="flex items-center justify-center gap-1 mt-1">
               <TrendingDown size={12} style={{ color: 'var(--alert)' }} />
               <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>Saiu do bolso</span>
@@ -472,7 +417,7 @@ function Step5({ data, set, r }: { data: AluguelData; set: SetFn; r: Results }) 
           </div>
           <div>
             <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--text-secondary)' }}>Renda Bruta (c/ parcelas)</p>
-            <p className="text-lg font-black" style={{ fontFamily: 'Montserrat', color: '#F0A500' }}>{fmt(r.rendaBrutaMensal)}/mês</p>
+            <p className="text-lg font-black" style={{ fontFamily: 'Montserrat', color: '#F0A500' }}>{fmt(rendaBruta)}/mês</p>
             <div className="flex items-center justify-center gap-1 mt-1">
               <CalendarDays size={12} style={{ color: '#F0A500' }} />
               <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>durante o consórcio</span>
@@ -480,7 +425,7 @@ function Step5({ data, set, r }: { data: AluguelData; set: SetFn; r: Results }) 
           </div>
           <div>
             <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--text-secondary)' }}>Renda Líquida Pós-Quitação</p>
-            <p className="text-lg font-black" style={{ fontFamily: 'Montserrat', color: '#00C864' }}>{fmt(r.rendaLiquidaMensal)}/mês</p>
+            <p className="text-lg font-black" style={{ fontFamily: 'Montserrat', color: '#00C864' }}>{fmt(rendaLiquida)}/mês</p>
             <div className="flex items-center justify-center gap-1 mt-1">
               <CheckCircle2 size={12} style={{ color: '#00C864' }} />
               <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>imóveis quitados</span>
@@ -490,10 +435,10 @@ function Step5({ data, set, r }: { data: AluguelData; set: SetFn; r: Results }) 
 
         <div className="flex flex-wrap justify-center gap-3 mt-8">
           <span className="px-5 py-2 rounded-full text-xs font-black" style={{ background: 'var(--gold-dim)', color: 'var(--gold)', border: '1px solid var(--border)' }}>
-            {data.numOperacoes} imóveis · {fmt(data.valorImovelFinal)} cada
+            {numCiclos} imóveis · cascata de alavancagem
           </span>
           <span className="px-5 py-2 rounded-full text-xs font-black" style={{ background: 'rgba(0,200,100,0.1)', color: '#00C864', border: '1px solid rgba(0,200,100,0.2)' }}>
-            {fmt(r.rendaLiquidaMensal)}/mês livre após quitação
+            {fmt(rendaLiquida)}/mês livre após quitação
           </span>
         </div>
       </motion.div>
@@ -564,7 +509,7 @@ function CicloCard({ c, pBolso, saldoAcumuladoAnterior }: { c: CicloResult; pBol
   );
 }
 
-function Step6({ ciclos, numCiclos, setNumCiclos, pBolso }: {
+function Step5({ ciclos, numCiclos, setNumCiclos, pBolso }: {
   ciclos: CicloResult[];
   numCiclos: number;
   setNumCiclos: (n: number) => void;
