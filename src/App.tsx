@@ -9,8 +9,9 @@ import CartaAplicada from './tools/CartaAplicada';
 import QuitacaoFinanciamento from './tools/QuitacaoFinanciamento';
 import QuickCalc from './tools/QuickCalc';
 import SimuladorLance from './tools/SimuladorLance';
+import CalculadoraLance from './tools/CalculadoraLance';
 
-type View = 'purpose' | 'matrix' | 'tool' | 'quickcalc';
+type View = 'purpose' | 'matrix' | 'tool' | 'quickcalc' | 'lance';
 type Path = 'acquisition' | 'return';
 
 const pageVariants = {
@@ -27,6 +28,8 @@ export default function App() {
   const handlePurposeSelect = (purpose: Purpose) => {
     if (purpose === 'quickcalc') {
       setView('quickcalc');
+    } else if (purpose === 'lance') {
+      setView('lance');
     } else {
       setPath(purpose);
       setView('matrix');
@@ -95,6 +98,12 @@ export default function App() {
       {view === 'tool' && tool === 6 && (
         <motion.div key="tool-6" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}>
           <SimuladorLance onBack={() => setView('matrix')} />
+        </motion.div>
+      )}
+
+      {view === 'lance' && (
+        <motion.div key="lance" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}>
+          <CalculadoraLance onBack={() => setView('purpose')} />
         </motion.div>
       )}
     </AnimatePresence>

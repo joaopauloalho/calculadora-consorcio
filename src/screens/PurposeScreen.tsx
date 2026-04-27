@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
-import { Zap, Building2, TrendingUp, ArrowRight } from 'lucide-react';
+import { Zap, Building2, TrendingUp, ArrowRight, Gavel } from 'lucide-react';
 
-export type Purpose = 'quickcalc' | 'acquisition' | 'return';
+export type Purpose = 'quickcalc' | 'lance' | 'acquisition' | 'return';
 
 interface Props {
   onSelect: (purpose: Purpose) => void;
@@ -21,6 +21,18 @@ const cards = [
     description:
       'Simule qualquer cota em segundos. Imóvel ou veículo, com ou sem ágio — resultado imediato para fechar em reunião.',
     cta: 'Calcular agora',
+    ctaColor: 'var(--gold)',
+    glowColor: 'rgba(201, 168, 76, 0.22)',
+    borderHover: 'rgba(201, 168, 76, 0.4)',
+  },
+  {
+    id: 'lance' as Purpose,
+    iconEl: <Gavel size={24} style={{ color: '#031715' }} />,
+    iconBg: 'var(--gold)',
+    title: 'Calculadora\nde Lance',
+    description:
+      'Simule lance livre ou embutido: veja o crédito líquido, saldo devedor e parcela após a contemplação pelo lance.',
+    cta: 'Simular lance',
     ctaColor: 'var(--gold)',
     glowColor: 'rgba(201, 168, 76, 0.22)',
     borderHover: 'rgba(201, 168, 76, 0.4)',
@@ -127,7 +139,7 @@ export default function PurposeScreen({ onSelect }: Props) {
         variants={{ show: { transition: { staggerChildren: 0.12 } } }}
         initial="hidden"
         animate="show"
-        className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-4xl"
+        className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-4xl"
       >
         {cards.map((c) => (
           <motion.button
