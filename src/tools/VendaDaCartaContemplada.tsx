@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft, ArrowRight, Repeat2, ChevronLeft,
@@ -7,79 +7,9 @@ import {
 } from 'lucide-react';
 import { calculateVendaCarta, fmt, type VendaCartaData } from '../lib/calculations';
 import FunilContemplacao from '../components/FunilContemplacao';
+import { Label, StatCard, GoldInput, ProgressDots, StepHeader, slideVariants } from '../components/shared';
 
 const TOTAL_STEPS = 4;
-
-const slideVariants = {
-  enter: (dir: number) => ({ x: dir > 0 ? 60 : -60, opacity: 0 }),
-  center: { x: 0, opacity: 1 },
-  exit: (dir: number) => ({ x: dir > 0 ? -60 : 60, opacity: 0 }),
-};
-
-function Label({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--text-secondary)' }}>
-      {children}
-    </p>
-  );
-}
-
-function StatCard({ label, value, accent, sub }: { label: string; value: string; accent?: boolean; sub?: string }) {
-  return (
-    <div className="p-5 rounded-2xl border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-      <Label>{label}</Label>
-      <p className="text-2xl font-black" style={{ fontFamily: 'Montserrat', color: accent ? 'var(--gold)' : 'white' }}>
-        {value}
-      </p>
-      {sub && <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>{sub}</p>}
-    </div>
-  );
-}
-
-function GoldInput({ label, value, onChange, suffix }: { label: string; value: number; onChange: (v: number) => void; suffix?: string }) {
-  return (
-    <div>
-      <Label>{label}{suffix ? ` (${suffix})` : ''}</Label>
-      <input
-        type="number"
-        value={value === 0 ? '' : value}
-        onChange={(e) => onChange(e.target.value === '' ? 0 : Number(e.target.value))}
-      />
-    </div>
-  );
-}
-
-function ProgressDots({ step }: { step: number }) {
-  return (
-    <div className="flex items-center gap-2">
-      {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
-        <div
-          key={i}
-          className="rounded-full transition-all duration-500"
-          style={{
-            width: i === step - 1 ? 24 : 8,
-            height: 8,
-            background: i < step ? 'var(--gold)' : i === step - 1 ? 'var(--gold)' : 'rgba(193,177,118,0.2)',
-          }}
-        />
-      ))}
-    </div>
-  );
-}
-
-function StepHeader({ step, title, subtitle }: { step: number; title: string; subtitle: string }) {
-  return (
-    <div className="mb-2">
-      <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--gold)' }}>
-        Etapa {step} de {TOTAL_STEPS}
-      </p>
-      <h2 className="text-2xl md:text-3xl font-black text-white mb-2" style={{ fontFamily: 'Montserrat' }}>
-        {title}
-      </h2>
-      <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{subtitle}</p>
-    </div>
-  );
-}
 
 interface Props {
   onBack: () => void;
@@ -94,7 +24,7 @@ export default function VendaDaCartaContemplada({ onBack }: Props) {
     taxaAdm: 0.23,
     prazoTotal: 220,
     mesContemplacao: 30,
-    valorVendaChave: 200000,
+    agioPercent: 20,
     inccAnual: 3.5,
   });
 
@@ -120,7 +50,7 @@ export default function VendaDaCartaContemplada({ onBack }: Props) {
               Venda da <span style={{ color: 'var(--gold)' }}>Carta Contemplada</span>
             </span>
           </div>
-          <ProgressDots step={step} />
+          <ProgressDots step={step} totalSteps={TOTAL_STEPS} />
         </div>
       </nav>
 
@@ -204,7 +134,7 @@ function Step1({ data, set, r }: { data: VendaCartaData; set: SetFn; r: Results 
 
   return (
     <div className="space-y-8">
-      <StepHeader step={1} title="Dados da Cota" subtitle="Preencha o Crédito ou a Meia Parcela — o outro campo é calculado automaticamente." />
+      <StepHeader step={1} totalSteps={TOTAL_STEPS} title="Dados da Cota" subtitle="Preencha o Crédito ou a Meia Parcela — o outro campo é calculado automaticamente." />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <GoldInput label="Valor do Crédito" value={data.valorCredito} onChange={onCreditoChange} suffix="R$" />
         <GoldInput label="Meia Parcela (até contemplar)" value={Math.round(meiaParcela)} onChange={onParcelaChange} suffix="R$" />
@@ -219,7 +149,7 @@ function Step1({ data, set, r }: { data: VendaCartaData; set: SetFn; r: Results 
 function Step2({ data, set, r }: { data: VendaCartaData; set: SetFn; r: Results }) {
   return (
     <div className="space-y-8">
-      <StepHeader step={2} title="Simulação de Contemplação" subtitle="Defina o mês estimado em que você será contemplado e veja o capital acumulado." />
+      <StepHeader step={2} totalSteps={TOTAL_STEPS} title="Simulação de Contemplação" subtitle="Defina o mês estimado em que você será contemplado e veja o capital acumulado." />
       <FunilContemplacao
         prazoTotal={data.prazoTotal}
         mesContemplacao={data.mesContemplacao}
@@ -246,22 +176,18 @@ function Step2({ data, set, r }: { data: VendaCartaData; set: SetFn; r: Results 
 }
 
 function Step3({ data, set, r }: { data: VendaCartaData; set: SetFn; r: Results }) {
-  const [agioStr, setAgioStr] = useState('20');
-  const agioPercent = parseFloat(agioStr) || 0;
-
   const onPercentChange = (s: string) => {
-    setAgioStr(s);
     const p = parseFloat(s) || 0;
-    set('valorVendaChave')(Math.round(r.valorCreditoAtualizado * p / 100));
+    set('agioPercent')(p);
   };
 
   return (
     <div className="space-y-8">
-      <StepHeader step={3} title="Valor de Compra da Carta" subtitle="Informe o valor de compra da carta como % do crédito. O comprador paga esse valor e assume o saldo devedor restante." />
+      <StepHeader step={3} totalSteps={TOTAL_STEPS} title="Valor de Compra da Carta" subtitle="Informe o valor de compra da carta como % do crédito. O comprador paga esse valor e assume o saldo devedor restante." />
       <div className="p-6 rounded-2xl border space-y-5" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
         <div>
           <Label>Valor de Compra da Carta (%)</Label>
-          <input type="number" value={agioStr} onChange={(e) => onPercentChange(e.target.value)} />
+          <input type="number" value={data.agioPercent} onChange={(e) => onPercentChange(e.target.value)} />
         </div>
         <div className="flex justify-between items-center px-1">
           <span className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--text-secondary)' }}>
@@ -269,10 +195,10 @@ function Step3({ data, set, r }: { data: VendaCartaData; set: SetFn; r: Results 
           </span>
           <div className="text-right">
             <span className="font-black text-lg block" style={{ color: 'var(--gold)', fontFamily: 'Montserrat' }}>
-              {fmt(data.valorVendaChave)}
+              {fmt(r.valorVendaChave)}
             </span>
             <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-              {agioPercent}% de {fmt(r.valorCreditoAtualizado)} (carta atualizada INCC)
+              {data.agioPercent}% de {fmt(r.valorCreditoAtualizado)} (carta atualizada INCC)
             </span>
           </div>
         </div>
@@ -280,7 +206,7 @@ function Step3({ data, set, r }: { data: VendaCartaData; set: SetFn; r: Results 
         <div className="grid grid-cols-2 gap-4">
           <div>
             <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--text-secondary)' }}>Você recebe</p>
-            <p className="text-xl font-black" style={{ fontFamily: 'Montserrat', color: '#00C864' }}>{fmt(data.valorVendaChave)}</p>
+            <p className="text-xl font-black" style={{ fontFamily: 'Montserrat', color: '#00C864' }}>{fmt(r.valorVendaChave)}</p>
           </div>
           <div>
             <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--text-secondary)' }}>Comprador assume</p>
@@ -302,7 +228,7 @@ function Step3({ data, set, r }: { data: VendaCartaData; set: SetFn; r: Results 
       </div>
       <div className="p-5 rounded-2xl border text-sm" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>
         <Info size={14} className="inline mr-2" style={{ color: 'var(--gold)' }} />
-        O <strong style={{ color: 'white' }}>valor de compra da carta</strong> é o prêmio pela contemplação. O comprador paga {agioPercent}% da carta atualizada ({fmt(data.valorVendaChave)}) e assume as parcelas restantes — ainda assim pagando menos que no banco.
+        O <strong style={{ color: 'white' }}>valor de compra da carta</strong> é o prêmio pela contemplação. O comprador paga {data.agioPercent}% da carta atualizada ({fmt(r.valorVendaChave)}) e assume as parcelas restantes — ainda assim pagando menos que no banco.
       </div>
     </div>
   );
@@ -312,7 +238,7 @@ function Step4({ data, set, r }: { data: VendaCartaData; set: SetFn; r: Results 
   const isPositive = r.lucroLiquido >= 0;
   return (
     <div className="space-y-8">
-      <StepHeader step={4} title="Painel de Rentabilidade" subtitle="Seu retorno sobre o capital investido. Ajuste o mês de contemplação para ver a sensibilidade." />
+      <StepHeader step={4} totalSteps={TOTAL_STEPS} title="Painel de Rentabilidade" subtitle="Seu retorno sobre o capital investido. Ajuste o mês de contemplação para ver a sensibilidade." />
 
       <div className="p-6 rounded-2xl border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
         <p className="text-xs font-black uppercase tracking-widest mb-4" style={{ color: 'var(--gold)' }}>

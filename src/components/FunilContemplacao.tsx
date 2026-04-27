@@ -11,7 +11,7 @@ export default function FunilContemplacao({ prazoTotal, mesContemplacao, onChang
   const H = 100;
 
   // Curva logarítmica simples: probabilidade acumulada cresce ao longo do prazo
-  const prob = (m: number) => Math.min(0.99, m / prazoTotal);
+  const prob = (m: number) => Math.min(0.99, Math.log(m) / Math.log(prazoTotal));
   const points = Array.from({ length: prazoTotal }, (_, i) => i + 1);
   const pathD = points
     .map((m, i) => {

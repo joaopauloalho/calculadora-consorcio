@@ -2,17 +2,10 @@ import { useState } from 'react';
 import { ChevronLeft, Trophy, Zap, Shield, Star, Diamond, CheckCircle2, XCircle, Info } from 'lucide-react';
 import { fmt } from '../lib/calculations';
 import BRLInput from '../components/BRLInput';
+import { Label } from '../components/shared';
 
 interface Props {
   onBack: () => void;
-}
-
-function Label({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--text-secondary)' }}>
-      {children}
-    </p>
-  );
 }
 
 const TIPOS_LANCE = [

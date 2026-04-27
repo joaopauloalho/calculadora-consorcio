@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft, ArrowRight, ChevronLeft, RefreshCw, TrendingDown,
@@ -6,65 +6,10 @@ import {
 } from 'lucide-react';
 import { calculateQuitacao, calcularEvolucaoCreditoSaldo, fmt, INCC_MEDIO_HISTORICO, type QuitacaoData } from '../lib/calculations';
 import FunilContemplacao from '../components/FunilContemplacao';
+import { Label, StatCard, ProgressDots, StepHeader, slideVariants } from '../components/shared';
 import BRLInput from '../components/BRLInput';
 
 const TOTAL_STEPS = 4;
-
-const slideVariants = {
-  enter: (dir: number) => ({ x: dir > 0 ? 60 : -60, opacity: 0 }),
-  center: { x: 0, opacity: 1 },
-  exit: (dir: number) => ({ x: dir > 0 ? -60 : 60, opacity: 0 }),
-};
-
-function Label({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--text-secondary)' }}>
-      {children}
-    </p>
-  );
-}
-
-function StatCard({ label, value, sub, color }: { label: string; value: string; sub?: string; color?: string }) {
-  return (
-    <div className="p-5 rounded-2xl border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-      <Label>{label}</Label>
-      <p className="text-2xl font-black" style={{ fontFamily: 'Montserrat', color: color ?? 'white' }}>{value}</p>
-      {sub && <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>{sub}</p>}
-    </div>
-  );
-}
-
-function ProgressDots({ step }: { step: number }) {
-  return (
-    <div className="flex items-center gap-2">
-      {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
-        <div
-          key={i}
-          className="rounded-full transition-all duration-500"
-          style={{
-            width: i === step - 1 ? 24 : 8,
-            height: 8,
-            background: i < step ? 'var(--alert)' : i === step - 1 ? 'var(--alert)' : 'rgba(204,51,102,0.2)',
-          }}
-        />
-      ))}
-    </div>
-  );
-}
-
-function StepHeader({ step, title, subtitle }: { step: number; title: string; subtitle: string }) {
-  return (
-    <div className="mb-2">
-      <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--alert)' }}>
-        Etapa {step} de {TOTAL_STEPS}
-      </p>
-      <h2 className="text-2xl md:text-3xl font-black text-white mb-2" style={{ fontFamily: 'Montserrat' }}>
-        {title}
-      </h2>
-      <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{subtitle}</p>
-    </div>
-  );
-}
 
 interface Props { onBack: () => void; }
 
@@ -104,7 +49,7 @@ export default function QuitacaoFinanciamento({ onBack }: Props) {
               Quitação de <span style={{ color: 'var(--alert)' }}>Financiamento</span>
             </span>
           </div>
-          <ProgressDots step={step} />
+          <ProgressDots step={step} totalSteps={TOTAL_STEPS} variant="alert" />
         </div>
       </nav>
 
@@ -173,6 +118,8 @@ function Step1({ data, set, r }: { data: QuitacaoData; set: SetFn; r: Results })
     <div className="space-y-8">
       <StepHeader
         step={1}
+        totalSteps={TOTAL_STEPS}
+        variant="alert"
         title="Financiamento Atual"
         subtitle="Informe os dados do financiamento bancário atual para calcular o custo total restante."
       />
@@ -292,6 +239,8 @@ function Step2({ data, set, r }: { data: QuitacaoData; set: SetFn; r: Results })
     <div className="space-y-8">
       <StepHeader
         step={2}
+        totalSteps={TOTAL_STEPS}
+        variant="alert"
         title="Novo Consórcio"
         subtitle="Configure o consórcio para quitação. O crédito deve cobrir o saldo devedor do banco."
       />
@@ -362,6 +311,8 @@ function Step3({ data, set, r }: { data: QuitacaoData; set: SetFn; r: Results })
     <div className="space-y-8">
       <StepHeader
         step={3}
+        totalSteps={TOTAL_STEPS}
+        variant="alert"
         title="Simulação de Contemplação"
         subtitle="Durante o período até a contemplação, você paga banco + meia parcela simultaneamente."
       />
@@ -424,6 +375,8 @@ function Step4({ data, r }: { data: QuitacaoData; r: Results }) {
     <div className="space-y-6">
       <StepHeader
         step={4}
+        totalSteps={TOTAL_STEPS}
+        variant="alert"
         title="Resultado Comparativo"
         subtitle="Banco vs. Consórcio: economia real e impacto no tempo de endividamento."
       />

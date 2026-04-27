@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft, ArrowRight, Calculator, Info,
@@ -9,64 +9,9 @@ import {
 import { calculate, fmt, type SimData, INCC_MEDIO_HISTORICO } from '../lib/calculations';
 import ComparisonChart from '../components/ComparisonChart';
 import FunilContemplacao from '../components/FunilContemplacao';
+import { Label, StatCard, GoldInput, ProgressDots, StepHeader, slideVariants } from '../components/shared';
 
 const TOTAL_STEPS = 8;
-
-const slideVariants = {
-  enter: (dir: number) => ({ x: dir > 0 ? 60 : -60, opacity: 0 }),
-  center: { x: 0, opacity: 1 },
-  exit: (dir: number) => ({ x: dir > 0 ? -60 : 60, opacity: 0 }),
-};
-
-function Label({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--text-secondary)' }}>
-      {children}
-    </p>
-  );
-}
-
-function StatCard({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
-  return (
-    <div className="p-5 rounded-2xl border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-      <Label>{label}</Label>
-      <p className="text-2xl font-black" style={{ fontFamily: 'Montserrat', color: accent ? 'var(--gold)' : 'white' }}>
-        {value}
-      </p>
-    </div>
-  );
-}
-
-function GoldInput({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
-  return (
-    <div>
-      <Label>{label}</Label>
-      <input
-        type="number"
-        value={value === 0 ? '' : value}
-        onChange={(e) => onChange(e.target.value === '' ? 0 : Number(e.target.value))}
-      />
-    </div>
-  );
-}
-
-function ProgressDots({ step }: { step: number }) {
-  return (
-    <div className="flex items-center gap-2">
-      {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
-        <div
-          key={i}
-          className="rounded-full transition-all duration-500"
-          style={{
-            width: i === step - 1 ? 24 : 8,
-            height: 8,
-            background: i < step ? 'var(--gold)' : i === step - 1 ? 'var(--gold)' : 'rgba(193,177,118,0.2)',
-          }}
-        />
-      ))}
-    </div>
-  );
-}
 
 interface Props {
   onBack: () => void;
@@ -110,7 +55,7 @@ export default function CompraeConstrucao({ onBack }: Props) {
               Compra<span style={{ color: 'var(--gold)' }}>&</span>Construção
             </span>
           </div>
-          <ProgressDots step={step} />
+          <ProgressDots step={step} totalSteps={TOTAL_STEPS} />
         </div>
       </nav>
 
@@ -181,7 +126,7 @@ export default function CompraeConstrucao({ onBack }: Props) {
 function Step1({ data, set, r }: { data: SimData; set: (k: keyof SimData) => (v: number) => void; r: ReturnType<typeof calculate> }) {
   return (
     <div className="space-y-8">
-      <StepHeader step={1} title="Definição do Projeto" subtitle="Informe os valores do terreno e da construção para calcular o crédito necessário." />
+      <StepHeader step={1} totalSteps={TOTAL_STEPS} title="Definição do Projeto" subtitle="Informe os valores do terreno e da construção para calcular o crédito necessário." />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <GoldInput label="Valor do Terreno (R$)" value={data.valorTerreno} onChange={set('valorTerreno')} />
         <GoldInput label="Valor da Construção (R$)" value={data.valorConstrucao} onChange={set('valorConstrucao')} />
@@ -206,7 +151,7 @@ function Step1({ data, set, r }: { data: SimData; set: (k: keyof SimData) => (v:
 function Step2({ data, r }: { data: SimData; r: ReturnType<typeof calculate> }) {
   return (
     <div className="space-y-8">
-      <StepHeader step={2} title="Dados do Consórcio" subtitle="Parâmetros do grupo: prazo, taxa administrativa e estrutura de parcelas." />
+      <StepHeader step={2} totalSteps={TOTAL_STEPS} title="Dados do Consórcio" subtitle="Parâmetros do grupo: prazo, taxa administrativa e estrutura de parcelas." />
       <div className="grid grid-cols-2 gap-4">
         <StatCard label="Prazo Total" value={`${data.prazoTotal} Meses`} />
         <StatCard label="Taxa Adm. Total" value={`${(data.taxaAdm * 100).toFixed(0)}%`} />
@@ -230,7 +175,7 @@ function Step2({ data, r }: { data: SimData; r: ReturnType<typeof calculate> }) 
 function Step3({ data, set, r }: { data: SimData; set: (k: keyof SimData) => (v: number) => void; r: ReturnType<typeof calculate> }) {
   return (
     <div className="space-y-8">
-      <StepHeader step={3} title="Funil de Contemplação" subtitle="Selecione o mês estimado em que você será contemplado e veja o impacto nos cálculos." />
+      <StepHeader step={3} totalSteps={TOTAL_STEPS} title="Funil de Contemplação" subtitle="Selecione o mês estimado em que você será contemplado e veja o impacto nos cálculos." />
 
       <FunilContemplacao
         prazoTotal={data.prazoTotal}
@@ -273,7 +218,7 @@ function Step3({ data, set, r }: { data: SimData; set: (k: keyof SimData) => (v:
 function Step4({ data, set, r }: { data: SimData; set: (k: keyof SimData) => (v: number) => void; r: ReturnType<typeof calculate> }) {
   return (
     <div className="space-y-8">
-      <StepHeader step={4} title="Período da Obra" subtitle="Defina o prazo de construção e veja o impacto no saldo devedor ao final da obra." />
+      <StepHeader step={4} totalSteps={TOTAL_STEPS} title="Período da Obra" subtitle="Defina o prazo de construção e veja o impacto no saldo devedor ao final da obra." />
       <GoldInput label="Tempo de Construção (meses)" value={data.mesesObra} onChange={set('mesesObra')} />
       <div className="p-8 rounded-3xl space-y-5 border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
         <div className="flex justify-between items-center">
@@ -293,7 +238,7 @@ function Step4({ data, set, r }: { data: SimData; set: (k: keyof SimData) => (v:
 function Step5({ data, r }: { data: SimData; r: ReturnType<typeof calculate> }) {
   return (
     <div className="space-y-8">
-      <StepHeader step={5} title="Resumo do Desembolso" subtitle="Total real saído do bolso ao longo de toda a operação." />
+      <StepHeader step={5} totalSteps={TOTAL_STEPS} title="Resumo do Desembolso" subtitle="Total real saído do bolso ao longo de toda a operação." />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="p-5 rounded-2xl border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
           <Label>Aportes Pré-Contemplação</Label>
@@ -339,7 +284,7 @@ function Step5({ data, r }: { data: SimData; r: ReturnType<typeof calculate> }) 
 function Step6({ data, set, r }: { data: SimData; set: (k: keyof SimData) => (v: number) => void; r: ReturnType<typeof calculate> }) {
   return (
     <div className="space-y-6">
-      <StepHeader step={6} title="Consórcio vs. Banco" subtitle="Compare parcela mensal e prazo entre as duas modalidades." />
+      <StepHeader step={6} totalSteps={TOTAL_STEPS} title="Consórcio vs. Banco" subtitle="Compare parcela mensal e prazo entre as duas modalidades." />
 
       {/* Inputs */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-5 rounded-2xl border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
@@ -442,7 +387,7 @@ function Step7({ data, set, r }: { data: SimData; set: (k: keyof SimData) => (v:
 
   return (
     <div className="space-y-8">
-      <StepHeader step={7} title="Fechamento e Lucro" subtitle="Resultado final da operação. Ajuste o mês de contemplação para ver a sensibilidade do lucro." />
+      <StepHeader step={7} totalSteps={TOTAL_STEPS} title="Fechamento e Lucro" subtitle="Resultado final da operação. Ajuste o mês de contemplação para ver a sensibilidade do lucro." />
 
       <div className="p-6 rounded-2xl border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
         <p className="text-xs font-black uppercase tracking-widest mb-4" style={{ color: 'var(--gold)' }}>
@@ -541,6 +486,7 @@ function Step8({ data, set, r }: { data: SimData; set: (k: keyof SimData) => (v:
     <div className="space-y-8">
       <StepHeader
         step={8}
+        totalSteps={TOTAL_STEPS}
         title="Rentabilidade do Investimento"
         subtitle="Retorno real considerando aportes mensais graduais — não como capital único."
       />
@@ -669,20 +615,6 @@ function Step8({ data, set, r }: { data: SimData; set: (k: keyof SimData) => (v:
           Contemplar mais cedo → menos capital empregado → maior rentabilidade mensal
         </p>
       </div>
-    </div>
-  );
-}
-
-function StepHeader({ step, title, subtitle }: { step: number; title: string; subtitle: string }) {
-  return (
-    <div className="mb-2">
-      <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--gold)' }}>
-        Etapa {step} de {TOTAL_STEPS}
-      </p>
-      <h2 className="text-2xl md:text-3xl font-black text-white mb-2" style={{ fontFamily: 'Montserrat' }}>
-        {title}
-      </h2>
-      <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{subtitle}</p>
     </div>
   );
 }
