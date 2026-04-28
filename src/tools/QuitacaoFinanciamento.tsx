@@ -1,4 +1,5 @@
-﻿import { useState } from 'react';
+﻿import { useState, useMemo } from 'react';
+import { useCalculatorNavigation } from '../hooks/useCalculatorNavigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft, ArrowRight, ChevronLeft, RefreshCw, TrendingDown,
@@ -14,8 +15,7 @@ const TOTAL_STEPS = 4;
 interface Props { onBack: () => void; }
 
 export default function QuitacaoFinanciamento({ onBack }: Props) {
-  const [step, setStep] = useState(1);
-  const [dir, setDir] = useState(1);
+  const { step, dir, goNext, goPrev, setStep } = useCalculatorNavigation(TOTAL_STEPS);
   const [data, setData] = useState<QuitacaoData>({
     saldoDevedorBanco: 400000,
     parcelaBanco: 4500,
@@ -28,11 +28,8 @@ export default function QuitacaoFinanciamento({ onBack }: Props) {
     inccAnual: INCC_MEDIO_HISTORICO,
   });
 
-  const r = calculateQuitacao(data);
+  const r = useMemo(() => calculateQuitacao(data), [data]);
   const set = (key: keyof QuitacaoData) => (v: number) => setData((d) => ({ ...d, [key]: v }));
-
-  const goNext = () => { setDir(1); setStep((s) => Math.min(s + 1, TOTAL_STEPS)); };
-  const goPrev = () => { setDir(-1); setStep((s) => Math.max(s - 1, 1)); };
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg-black)' }}>
@@ -189,7 +186,7 @@ function Step1({ data, set, r }: { data: QuitacaoData; set: SetFn; r: Results })
         />
         {cetBanco > 0 && (
           <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
-            {(cetBanco / 12).toFixed(3)}% a.m. · seu financiamento custa {cetBanco.toFixed(2)}% ao ano efetivo
+            {(((1 + cetBanco / 100) ** (1 / 12) - 1) * 100).toFixed(3)}% a.m. · seu financiamento custa {cetBanco.toFixed(2)}% ao ano efetivo
           </p>
         )}
       </div>

@@ -1,4 +1,5 @@
-﻿import { useState } from 'react';
+﻿import { useState, useMemo } from 'react';
+import { useCalculatorNavigation } from '../hooks/useCalculatorNavigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft, ArrowRight, Calculator, Info,
@@ -18,8 +19,7 @@ interface Props {
 }
 
 export default function CompraeConstrucao({ onBack }: Props) {
-  const [step, setStep] = useState(1);
-  const [dir, setDir] = useState(1);
+  const { step, dir, goNext, goPrev, setStep } = useCalculatorNavigation(TOTAL_STEPS);
   const [data, setData] = useState<SimData>({
     valorTerreno: 200000,
     valorConstrucao: 800000,
@@ -33,11 +33,8 @@ export default function CompraeConstrucao({ onBack }: Props) {
     inccAnual: INCC_MEDIO_HISTORICO,
   });
 
-  const r = calculate(data);
+  const r = useMemo(() => calculate(data), [data]);
   const set = (key: keyof SimData) => (v: number) => setData((d) => ({ ...d, [key]: v }));
-
-  const goNext = () => { setDir(1); setStep((s) => Math.min(s + 1, TOTAL_STEPS)); };
-  const goPrev = () => { setDir(-1); setStep((s) => Math.max(s - 1, 1)); };
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg-black)' }}>
@@ -315,14 +312,14 @@ function Step6({ data, set, r }: { data: SimData; set: (k: keyof SimData) => (v:
               <AlertCircle size={14} style={{ color: 'var(--alert)' }} />
               <span className="text-xs font-bold text-white">Banco (SAC)</span>
             </div>
-            <p className="text-3xl font-black" style={{ fontFamily: 'Montserrat', color: 'var(--alert)' }}>{fmt(r.parcelaEstimadaBanco)}</p>
+            <p className="text-3xl font-black" style={{ fontFamily: 'Montserrat', color: 'var(--alert)' }}>{fmt(r.parcelaInicialBanco)}</p>
             <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>parcela inicial</p>
           </div>
         </div>
         <div className="px-5 py-3 flex justify-between items-center" style={{ background: 'rgba(0,0,0,0.4)', borderTop: '1px solid var(--border)' }}>
           <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>Economia mensal</span>
           <span className="font-black" style={{ color: 'var(--gold)', fontFamily: 'Montserrat' }}>
-            {fmt(r.parcelaEstimadaBanco - r.parcelaComSeguro)}/mês
+            {fmt(r.parcelaInicialBanco - r.parcelaComSeguro)}/mês
           </span>
         </div>
       </div>
@@ -356,13 +353,13 @@ function Step6({ data, set, r }: { data: SimData; set: (k: keyof SimData) => (v:
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="p-5 rounded-2xl border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
           <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--text-secondary)' }}>
-            Taxa Efetiva do Consórcio
+            Taxa de Administração Total
           </p>
           <p className="text-2xl font-black" style={{ fontFamily: 'Montserrat', color: 'var(--gold)' }}>
-            {(data.taxaAdm / (data.prazoTotal / 12)).toFixed(2)}% a.a.
+            {(data.taxaAdm * 100).toFixed(1)}%
           </p>
           <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
-            {(data.taxaAdm * 100).toFixed(1)}% taxa adm ÷ {(data.prazoTotal / 12).toFixed(1)} anos
+            sobre o crédito, diluída em {(data.prazoTotal / 12).toFixed(1)} anos
           </p>
         </div>
         <div className="p-5 rounded-2xl border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>

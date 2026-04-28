@@ -22,6 +22,13 @@ export function aplicarReajusteINCC(valor: number, inccAnualPercent: number, mes
   return valor * Math.pow(1 + inccEfetivo / 100, anosCompletos);
 }
 
+export function calculateBaseConsorcioMetrics(valorCredito: number, taxaAdm: number, prazoTotal: number) {
+  const totalComTaxa = valorCredito * (1 + taxaAdm);
+  const parcelaCheia = totalComTaxa / prazoTotal;
+  const meiaParcela = parcelaCheia / 2;
+  return { totalComTaxa, parcelaCheia, meiaParcela };
+}
+
 export interface SimData {
   valorTerreno: number;
   valorConstrucao: number;
@@ -52,7 +59,7 @@ export interface SimResults {
   mediaParcelaInvestida: number;
   parcelasRestantes: number;
   valorFinanciadoBanco: number;
-  parcelaEstimadaBanco: number;
+  parcelaInicialBanco: number;
   totalEstimadoPagoBanco: number;
   custoTotalAquisicaoConsorcio: number;
   lucroTotal: number;
@@ -86,7 +93,7 @@ export function calculate(data: SimData): SimResults {
 
   const amortizacaoMensal = valorFinanciadoBanco / PRAZO_BANCO_MESES;
   const jurosMensaisIniciais = valorFinanciadoBanco * TAXA_JUROS_BANCO_MENSAL;
-  const parcelaEstimadaBanco = valorFinanciadoBanco > 0 ? amortizacaoMensal + jurosMensaisIniciais + SEGURO_COND_MENSAL : 0;
+  const parcelaInicialBanco = valorFinanciadoBanco > 0 ? amortizacaoMensal + jurosMensaisIniciais + SEGURO_COND_MENSAL : 0;
   const totalEstimadoPagoBanco = valorFinanciadoBanco * CUSTO_TOTAL_BANCO_MULT;
 
   const custoTotalAquisicaoConsorcio = data.entradaVenda + saldoDevedorPosObra;
@@ -112,7 +119,7 @@ export function calculate(data: SimData): SimResults {
     mesesRestantesAposContemplacao, parcelaPosContemplacao,
     totalPagoNaObra, saldoDevedorPosObra, totalDesembolsado, totalMesesInvestindo,
     mediaParcelaInvestida, parcelasRestantes, valorFinanciadoBanco,
-    parcelaEstimadaBanco, totalEstimadoPagoBanco, custoTotalAquisicaoConsorcio,
+    parcelaInicialBanco, totalEstimadoPagoBanco, custoTotalAquisicaoConsorcio,
     lucroTotal, lucroMensalMedio, creditoReajustadoNaContemplacao,
     rentabilidadeMensal, capitalMedioEmpregado,
   };
@@ -136,7 +143,7 @@ export interface VendaCartaResults {
   roiAlavancado: number;
   lucroMensalMedio: number;
   custoTotalComprador: number;
-  parcelaEstimadaBanco: number;
+  parcelaInicialBanco: number;
   totalEstimadoPagoBanco: number;
   economiaTotalComprador: number;
   rentabilidadeMensal: number;
@@ -146,8 +153,7 @@ export interface VendaCartaResults {
 
 export function calculateVendaCarta(data: VendaCartaData): VendaCartaResults {
   const totalComTaxa = data.valorCredito * (1 + data.taxaAdm);
-  const inccMensal = Math.pow(1 + data.inccAnual / 100, 1 / 12) - 1;
-  const valorCreditoAtualizado = data.valorCredito * Math.pow(1 + inccMensal, data.mesContemplacao);
+  const valorCreditoAtualizado = aplicarReajusteINCC(data.valorCredito, data.inccAnual, data.mesContemplacao);
   const totalDesembolsado = data.mesContemplacao * data.valorParcela;
   const saldoDevedorNaContemplacao = Math.max(0, totalComTaxa - totalDesembolsado);
 
@@ -159,7 +165,7 @@ export function calculateVendaCarta(data: VendaCartaData): VendaCartaResults {
   const custoTotalComprador = valorVendaChave + saldoDevedorNaContemplacao;
   const amortizacao = data.valorCredito / PRAZO_BANCO_MESES;
   const juros = data.valorCredito * TAXA_JUROS_BANCO_MENSAL;
-  const parcelaEstimadaBanco = amortizacao + juros + SEGURO_COND_MENSAL;
+  const parcelaInicialBanco = amortizacao + juros + SEGURO_COND_MENSAL;
   const totalEstimadoPagoBanco = data.valorCredito * CUSTO_TOTAL_BANCO_MULT;
   const economiaTotalComprador = totalEstimadoPagoBanco - custoTotalComprador;
 
@@ -172,7 +178,7 @@ export function calculateVendaCarta(data: VendaCartaData): VendaCartaResults {
   return {
     totalComTaxa, totalDesembolsado, saldoDevedorNaContemplacao,
     lucroLiquido, roiAlavancado, lucroMensalMedio,
-    custoTotalComprador, parcelaEstimadaBanco, totalEstimadoPagoBanco,
+    custoTotalComprador, parcelaInicialBanco, totalEstimadoPagoBanco,
     economiaTotalComprador, rentabilidadeMensal, valorCreditoAtualizado, valorVendaChave,
   };
 }
@@ -206,9 +212,7 @@ export interface AluguelResults {
 }
 
 export function calculateAluguel(data: AluguelData): AluguelResults {
-  const totalComTaxa = data.valorCredito * (1 + data.taxaAdm);
-  const parcelaCheia = totalComTaxa / data.prazoTotal;
-  const meiaParcela = parcelaCheia / 2;
+  const { totalComTaxa, parcelaCheia, meiaParcela } = calculateBaseConsorcioMetrics(data.valorCredito, data.taxaAdm, data.prazoTotal);
   const totalDesembolsado = data.mesContemplacao * meiaParcela;
   const saldoDevedorNaContemplacao = Math.max(0, totalComTaxa - totalDesembolsado);
 
@@ -306,9 +310,7 @@ export function calculateQuitacao(data: QuitacaoData): QuitacaoResults {
   const custoTotalBanco = data.parcelaBanco * data.prazoRestanteBanco;
   const jurosTotaisBanco = Math.max(0, custoTotalBanco - data.saldoDevedorBanco);
 
-  const totalComTaxaConsorcio = data.valorCredito * (1 + data.taxaAdm);
-  const parcelaCheiaConsorcio = totalComTaxaConsorcio / data.prazoConsorcio;
-  const meiaParcela = parcelaCheiaConsorcio / 2;
+  const { totalComTaxa: totalComTaxaConsorcio, parcelaCheia: parcelaCheiaConsorcio, meiaParcela } = calculateBaseConsorcioMetrics(data.valorCredito, data.taxaAdm, data.prazoConsorcio);
 
   const saldoDevedorConsorcioContemplacao = Math.max(0, totalComTaxaConsorcio - data.mesContemplacao * meiaParcela);
 
@@ -406,9 +408,7 @@ export function calculateCartaAplicada(data: CartaAplicadaData): CartaAplicadaRe
   const taxaAdm = data.assetType === 'imovel' ? 0.23 : data.prazoTotal <= 48 ? 0.085 : 0.16;
   const seguroPercent = data.assetType === 'imovel' ? 0.000555 : 0.000888;
 
-  const totalComTaxa = data.valorCredito * (1 + taxaAdm);
-  const parcelaCheia = totalComTaxa / data.prazoTotal;
-  const meiaParcela = parcelaCheia / 2;
+  const { totalComTaxa, parcelaCheia, meiaParcela } = calculateBaseConsorcioMetrics(data.valorCredito, taxaAdm, data.prazoTotal);
   const parcelaPreContemp = data.paymentMode === 'meia' ? meiaParcela : parcelaCheia;
 
   const saldoDevedorContemplacao = Math.max(0, totalComTaxa - data.mesContemplacao * parcelaPreContemp);
@@ -421,7 +421,7 @@ export function calculateCartaAplicada(data: CartaAplicadaData): CartaAplicadaRe
 
   const correcaoAnual = data.assetType === 'imovel' ? 0.05 : 0.04;
   const correcaoIndice = data.assetType === 'imovel' ? 'INCC' : 'IPCA';
-  const creditoNaContemplacao = data.valorCredito * Math.pow(1 + correcaoAnual, data.mesContemplacao / 12);
+  const creditoNaContemplacao = aplicarReajusteINCC(data.valorCredito, correcaoAnual * 100, data.mesContemplacao);
 
   const cdiAnual = (data.selicAnual - 0.10) / 100;
   const cdiMensal = Math.pow(1 + cdiAnual, 1 / 12) - 1;
@@ -459,7 +459,6 @@ export interface QuickCalcData {
   comSeguro: boolean;
   paymentMode: PaymentMode;
   mesContemplacao: number;
-  venderComLucro: boolean;
   percentAgio: number;
 }
 
@@ -489,9 +488,7 @@ export function calculateQuickCalc(data: QuickCalcData): QuickCalcResults {
 
   const seguroPercent = data.assetType === 'imovel' ? 0.000555 : 0.000888;
 
-  const totalComTaxa = data.valorCredito * (1 + taxaAdm);
-  const parcelaCheiaOriginal = totalComTaxa / data.prazoTotal;
-  const meiaParcela = parcelaCheiaOriginal / 2;
+  const { totalComTaxa, parcelaCheia: parcelaCheiaOriginal, meiaParcela } = calculateBaseConsorcioMetrics(data.valorCredito, taxaAdm, data.prazoTotal);
   const parcelaAtual = data.paymentMode === 'meia' ? meiaParcela : parcelaCheiaOriginal;
 
   const saldoDevedorContemplacao = Math.max(
@@ -516,7 +513,7 @@ export function calculateQuickCalc(data: QuickCalcData): QuickCalcResults {
   // Crédito atualizado na contemplação (INCC 5% a.a. imóvel / IPCA 4% a.a. veículo)
   const correcaoAnual = data.assetType === 'imovel' ? 0.05 : 0.04;
   const correcaoIndice = data.assetType === 'imovel' ? 'INCC' : 'IPCA';
-  const creditoAtualizado = data.valorCredito * Math.pow(1 + correcaoAnual, data.mesContemplacao / 12);
+  const creditoAtualizado = aplicarReajusteINCC(data.valorCredito, correcaoAnual * 100, data.mesContemplacao);
 
   // Ágio = % sobre o crédito atualizado na contemplação (valor do dia)
   const valorVenda = creditoAtualizado * (data.percentAgio / 100);

@@ -1,4 +1,5 @@
-﻿import { useState } from 'react';
+﻿import { useState, useMemo } from 'react';
+import { useCalculatorNavigation } from '../hooks/useCalculatorNavigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft, ArrowRight, Repeat2, ChevronLeft,
@@ -16,8 +17,7 @@ interface Props {
 }
 
 export default function VendaDaCartaContemplada({ onBack }: Props) {
-  const [step, setStep] = useState(1);
-  const [dir, setDir] = useState(1);
+  const { step, dir, goNext, goPrev, setStep } = useCalculatorNavigation(TOTAL_STEPS);
   const [data, setData] = useState<VendaCartaData>({
     valorCredito: 1000000,
     valorParcela: 3000,
@@ -28,11 +28,8 @@ export default function VendaDaCartaContemplada({ onBack }: Props) {
     inccAnual: 3.5,
   });
 
-  const r = calculateVendaCarta(data);
+  const r = useMemo(() => calculateVendaCarta(data), [data]);
   const set = (key: keyof VendaCartaData) => (v: number) => setData((d) => ({ ...d, [key]: v }));
-
-  const goNext = () => { setDir(1); setStep((s) => Math.min(s + 1, TOTAL_STEPS)); };
-  const goPrev = () => { setDir(-1); setStep((s) => Math.max(s - 1, 1)); };
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg-black)' }}>

@@ -78,9 +78,9 @@ const allTools = [
     description: 'Compare os 5 tipos de lance Ello e descubra qual maximiza seu crédito na contemplação.',
     tag: 'Disponível',
     active: true,
-    color: 'var(--gold)',
-    colorBg: 'var(--gold-dim)',
-    glowColor: 'rgba(201, 168, 76, 0.22)',
+    color: 'var(--alert)',
+    colorBg: 'var(--alert-dim)',
+    glowColor: 'rgba(94, 185, 170, 0.22)',
   },
 ];
 

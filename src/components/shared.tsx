@@ -1,4 +1,6 @@
 import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ToggleLeft, ToggleRight } from 'lucide-react';
 
 export const slideVariants = {
   enter: (dir: number) => ({ x: dir > 0 ? 60 : -60, opacity: 0 }),
@@ -77,6 +79,55 @@ export function ProgressDots({
         />
       ))}
     </div>
+  );
+}
+
+export function AnimatedValue({ value }: { value: string }) {
+  return (
+    <AnimatePresence mode="wait">
+      <motion.span
+        key={value}
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -6 }}
+        transition={{ duration: 0.18 }}
+        style={{ display: 'inline-block' }}
+      >
+        {value}
+      </motion.span>
+    </AnimatePresence>
+  );
+}
+
+export function ToggleRow({
+  active, onClick, icon, title, sub,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  title: string;
+  sub: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="w-full flex items-center justify-between p-4 rounded-2xl border transition-all"
+      style={{
+        background: active ? 'rgba(193,177,118,0.1)' : 'var(--bg-card)',
+        borderColor: active ? 'var(--gold)' : 'var(--border)',
+      }}
+    >
+      <div className="flex items-center gap-3">
+        <span style={{ color: active ? 'var(--gold)' : 'var(--text-secondary)' }}>{icon}</span>
+        <div className="text-left">
+          <p className="text-sm font-bold" style={{ color: active ? 'var(--gold)' : 'white' }}>{title}</p>
+          <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{sub}</p>
+        </div>
+      </div>
+      {active
+        ? <ToggleRight size={22} style={{ color: 'var(--gold)' }} />
+        : <ToggleLeft size={22} style={{ color: 'var(--text-secondary)' }} />}
+    </button>
   );
 }
 

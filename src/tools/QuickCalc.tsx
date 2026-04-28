@@ -1,38 +1,18 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ChevronLeft, Zap, Home, Car, Shield, TrendingUp,
-  ToggleLeft, ToggleRight,
 } from 'lucide-react';
 import {
   calculateQuickCalc, fmt,
   type QuickCalcData,
 } from '../lib/calculations';
 import BRLInput from '../components/BRLInput';
-import { Label } from '../components/shared';
-
-const IMOVEL_PRAZOS = [220];
-const VEICULO_PRAZOS = [48, 100, 120];
+import { Label, AnimatedValue, ToggleRow } from '../components/shared';
+import { useConsorcioInputData } from '../hooks/useConsorcioInputData';
 
 interface Props {
   onBack: () => void;
-}
-
-function AnimatedValue({ value }: { value: string }) {
-  return (
-    <AnimatePresence mode="wait">
-      <motion.span
-        key={value}
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -6 }}
-        transition={{ duration: 0.18 }}
-        style={{ display: 'inline-block' }}
-      >
-        {value}
-      </motion.span>
-    </AnimatePresence>
-  );
 }
 
 function ResultCard({
@@ -80,103 +60,24 @@ function MiniStat({ label, value }: { label: string; value: string }) {
   );
 }
 
-function ToggleRow({
-  active, onClick, icon, title, sub,
-}: {
-  active: boolean;
-  onClick: () => void;
-  icon: React.ReactNode;
-  title: string;
-  sub: string;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className="w-full flex items-center justify-between p-4 rounded-2xl border transition-all"
-      style={{
-        background: active ? 'rgba(193,177,118,0.1)' : 'var(--bg-card)',
-        borderColor: active ? 'var(--gold)' : 'var(--border)',
-      }}
-    >
-      <div className="flex items-center gap-3">
-        <span style={{ color: active ? 'var(--gold)' : 'var(--text-secondary)' }}>
-          {icon}
-        </span>
-        <div className="text-left">
-          <p
-            className="text-sm font-bold"
-            style={{ color: active ? 'var(--gold)' : 'white' }}
-          >
-            {title}
-          </p>
-          <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-            {sub}
-          </p>
-        </div>
-      </div>
-      {active
-        ? <ToggleRight size={22} style={{ color: 'var(--gold)' }} />
-        : <ToggleLeft size={22} style={{ color: 'var(--text-secondary)' }} />}
-    </button>
-  );
-}
-
 export default function QuickCalc({ onBack }: Props) {
-  const [data, setData] = useState<QuickCalcData>({
+  const {
+    data, set, customPrazoStr, setAssetType, setPrazo, handleCustomPrazo, prazos,
+  } = useConsorcioInputData<QuickCalcData>({
     assetType: 'imovel',
     valorCredito: 500000,
     prazoTotal: 220,
     comSeguro: false,
     paymentMode: 'meia',
     mesContemplacao: 24,
-    venderComLucro: false,
     percentAgio: 20,
   });
-  const [customPrazoStr, setCustomPrazoStr] = useState('');
+  const [venderComLucro, setVenderComLucro] = useState(false);
 
-  const set = <K extends keyof QuickCalcData>(key: K) =>
-    (v: QuickCalcData[K]) => setData((d) => ({ ...d, [key]: v }));
-
-  const setAssetType = (type: QuickCalcData['assetType']) => {
-    const defaultPrazo = type === 'imovel' ? 220 : 48;
-    setCustomPrazoStr('');
-    setData((d) => ({
-      ...d,
-      assetType: type,
-      prazoTotal: defaultPrazo,
-      mesContemplacao: Math.min(d.mesContemplacao, defaultPrazo),
-    }));
-  };
-
-  const setPrazo = (prazo: number) => {
-    setCustomPrazoStr('');
-    setData((d) => ({
-      ...d,
-      prazoTotal: prazo,
-      mesContemplacao: Math.min(d.mesContemplacao, prazo),
-    }));
-  };
-
-  const handleCustomPrazo = (val: string) => {
-    setCustomPrazoStr(val);
-    const n = parseInt(val);
-    if (n > 0) {
-      const maxPrazo = data.assetType === 'imovel' ? 220 : 120;
-      const clamped = Math.min(n, maxPrazo);
-      setCustomPrazoStr(String(clamped));
-      setData((d) => ({
-        ...d,
-        prazoTotal: clamped,
-        mesContemplacao: Math.min(d.mesContemplacao, clamped),
-      }));
-    }
-  };
-
-  const r = calculateQuickCalc(data);
+  const r = useMemo(() => calculateQuickCalc(data), [data]);
   const parcelaAtualBase =
     data.paymentMode === 'meia' ? r.meiaParcela : r.parcelaCheiaOriginal;
   const isLucroPositive = r.lucroLiquido >= 0;
-  const prazos = data.assetType === 'imovel' ? IMOVEL_PRAZOS : VEICULO_PRAZOS;
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg-black)' }}>
@@ -382,15 +283,15 @@ export default function QuickCalc({ onBack }: Props) {
 
             {/* Vender com lucro toggle */}
             <ToggleRow
-              active={data.venderComLucro}
-              onClick={() => set('venderComLucro')(!data.venderComLucro)}
+              active={venderComLucro}
+              onClick={() => setVenderComLucro(!venderComLucro)}
               icon={<TrendingUp size={18} />}
               title="Vender com Lucro"
               sub="Calcula ROI e rentabilidade mensal da operação"
             />
 
             <AnimatePresence>
-              {data.venderComLucro && (
+              {venderComLucro && (
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
@@ -472,7 +373,7 @@ export default function QuickCalc({ onBack }: Props) {
 
             {/* Profit panel */}
             <AnimatePresence>
-              {data.venderComLucro && (
+              {venderComLucro && (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.96, y: 8 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}

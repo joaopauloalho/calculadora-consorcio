@@ -1,124 +1,36 @@
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, Home, Car, Shield, TrendingUp, ToggleLeft, ToggleRight } from 'lucide-react';
+import { useMemo } from 'react';
+import { ChevronLeft, Home, Car, Shield, TrendingUp } from 'lucide-react';
 import { calculateCartaAplicada, fmt, type CartaAplicadaData } from '../lib/calculations';
 import BRLInput from '../components/BRLInput';
-import { Label } from '../components/shared';
-
-const IMOVEL_PRAZOS = [220];
-const VEICULO_PRAZOS = [48, 100, 120];
+import { Label, AnimatedValue, ToggleRow } from '../components/shared';
+import { useConsorcioInputData } from '../hooks/useConsorcioInputData';
 
 interface Props {
   onBack: () => void;
 }
 
-function AnimatedValue({ value }: { value: string }) {
-  return (
-    <AnimatePresence mode="wait">
-      <motion.span
-        key={value}
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -6 }}
-        transition={{ duration: 0.18 }}
-        style={{ display: 'inline-block' }}
-      >
-        {value}
-      </motion.span>
-    </AnimatePresence>
-  );
-}
-
-function ToggleRow({ active, onClick, icon, title, sub }: {
-  active: boolean; onClick: () => void; icon: React.ReactNode; title: string; sub: string;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className="w-full flex items-center justify-between p-4 rounded-2xl border transition-all"
-      style={{
-        background: active ? 'rgba(193,177,118,0.1)' : 'var(--bg-card)',
-        borderColor: active ? 'var(--gold)' : 'var(--border)',
-      }}
-    >
-      <div className="flex items-center gap-3">
-        <span style={{ color: active ? 'var(--gold)' : 'var(--text-secondary)' }}>{icon}</span>
-        <div className="text-left">
-          <p className="text-sm font-bold" style={{ color: active ? 'var(--gold)' : 'white' }}>{title}</p>
-          <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>{sub}</p>
-        </div>
-      </div>
-      {active
-        ? <ToggleRight size={22} style={{ color: 'var(--gold)' }} />
-        : <ToggleLeft size={22} style={{ color: 'var(--text-secondary)' }} />}
-    </button>
-  );
-}
-
 export default function CartaAplicada({ onBack }: Props) {
-  const [data, setData] = useState<CartaAplicadaData>({
-    assetType: 'imovel',
-    valorCredito: 500000,
-    prazoTotal: 220,
-    mesContemplacao: 24,
-    selicAnual: 10.5,
-    paymentMode: 'meia',
-    comSeguro: false,
-    mesAnalise: 12,
-  });
-  const [customPrazoStr, setCustomPrazoStr] = useState('');
-
-  const set = <K extends keyof CartaAplicadaData>(key: K) =>
-    (v: CartaAplicadaData[K]) => setData((d) => ({ ...d, [key]: v }));
-
-  const setAssetType = (type: CartaAplicadaData['assetType']) => {
-    const defaultPrazo = type === 'imovel' ? 220 : 48;
-    setCustomPrazoStr('');
-    setData((d) => ({
-      ...d,
-      assetType: type,
-      prazoTotal: defaultPrazo,
-      mesContemplacao: Math.min(d.mesContemplacao, defaultPrazo - 1),
-      mesAnalise: Math.min(d.mesAnalise, defaultPrazo - Math.min(d.mesContemplacao, defaultPrazo - 1)),
-    }));
-  };
-
-  const setPrazo = (prazo: number) => {
-    setCustomPrazoStr('');
-    setData((d) => {
-      const newMesContemp = Math.min(d.mesContemplacao, prazo - 1);
-      return {
-        ...d,
-        prazoTotal: prazo,
-        mesContemplacao: newMesContemp,
-        mesAnalise: Math.min(d.mesAnalise, prazo - newMesContemp),
-      };
-    });
-  };
-
-  const handleCustomPrazo = (val: string) => {
-    setCustomPrazoStr(val);
-    const n = parseInt(val);
-    if (n > 0) {
-      const maxPrazo = data.assetType === 'imovel' ? 220 : 120;
-      const clamped = Math.min(n, maxPrazo);
-      setCustomPrazoStr(String(clamped));
-      setData((d) => {
-        const newMesContemp = Math.min(d.mesContemplacao, clamped - 1);
-        return {
-          ...d,
-          prazoTotal: clamped,
-          mesContemplacao: newMesContemp,
-          mesAnalise: Math.min(d.mesAnalise, clamped - newMesContemp),
-        };
-      });
-    }
-  };
+  const {
+    data, setData, set, customPrazoStr, setAssetType, setPrazo, handleCustomPrazo, prazos,
+  } = useConsorcioInputData<CartaAplicadaData>(
+    {
+      assetType: 'imovel',
+      valorCredito: 500000,
+      prazoTotal: 220,
+      mesContemplacao: 24,
+      selicAnual: 10.5,
+      paymentMode: 'meia',
+      comSeguro: false,
+      mesAnalise: 12,
+    },
+    (prazo, newMesContemp, d) => ({
+      mesAnalise: Math.min(d.mesAnalise, prazo - newMesContemp),
+    }),
+  );
 
   const maxMesAnalise = Math.max(1, data.prazoTotal - data.mesContemplacao);
-  const r = calculateCartaAplicada(data);
+  const r = useMemo(() => calculateCartaAplicada(data), [data]);
   const isSaldoPositive = r.saldoLiquido >= 0;
-  const prazos = data.assetType === 'imovel' ? IMOVEL_PRAZOS : VEICULO_PRAZOS;
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg-black)' }}>

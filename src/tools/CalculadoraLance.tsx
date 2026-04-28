@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useCalculatorNavigation } from '../hooks/useCalculatorNavigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ArrowLeft, ArrowRight, Gavel, Info, RefreshCw, CheckCircle2 } from 'lucide-react';
 import { aplicarReajusteINCC, fmt, INCC_MEDIO_HISTORICO } from '../lib/calculations';
@@ -32,14 +33,15 @@ function calcular(d: Data) {
 
   if (d.tipoLance === 'livre') {
     const lanceValor = (d.lancePercent / 100) * valorCreditoAtualizado;
+    const saldoDevedorFinal = Math.max(0, saldoDevedorBruto - lanceValor);
     return {
       valorCreditoAtualizado, parcela, parcelasRestantes,
       lanceTotal: lanceValor, lanceTotalPercent: d.lancePercent,
       lanceCartaValor: 0, lanceCartaPercent: 0,
       recursosPropriosLance: lanceValor,
       creditoLiquido: valorCreditoAtualizado,
-      saldoDevedor: saldoDevedorBruto,
-      parcelasEfetivas: parcelasRestantes,
+      saldoDevedor: saldoDevedorFinal,
+      parcelasEfetivas: parcela > 0 ? Math.round(saldoDevedorFinal / parcela) : 0,
     };
   }
 
@@ -62,8 +64,7 @@ function calcular(d: Data) {
 const TOTAL_STEPS = 3;
 
 export default function CalculadoraLance({ onBack }: Props) {
-  const [step, setStep] = useState(1);
-  const [dir, setDir] = useState(1);
+  const { step, dir, goNext, goPrev, setStep } = useCalculatorNavigation(TOTAL_STEPS);
   const [data, setData] = useState<Data>({
     valorCredito: 300000,
     prazoTotal: 180,
@@ -78,11 +79,8 @@ export default function CalculadoraLance({ onBack }: Props) {
     ofertaTotalPercent: 30,
   });
 
-  const r = calcular(data);
+  const r = useMemo(() => calcular(data), [data]);
   const set = <K extends keyof Data>(key: K) => (v: Data[K]) => setData(d => ({ ...d, [key]: v }));
-
-  const goNext = () => { setDir(1); setStep(s => Math.min(s + 1, TOTAL_STEPS)); };
-  const goPrev = () => { setDir(-1); setStep(s => Math.max(s - 1, 1)); };
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg-black)' }}>
