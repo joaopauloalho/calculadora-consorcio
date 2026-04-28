@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ArrowLeft, ArrowRight, Gavel, Info, RefreshCw, CheckCircle2 } from 'lucide-react';
 import { aplicarReajusteINCC, fmt, INCC_MEDIO_HISTORICO } from '../lib/calculations';
@@ -250,13 +250,13 @@ function Step1({ data, set, r }: { data: Data; set: <K extends keyof Data>(k: K)
           </div>
           <div className="p-6 border-l" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
             <p className="text-[10px] font-black uppercase tracking-widest mb-1" style={{ color: 'var(--text-secondary)' }}>
-              Parcela Mensal
+              Parcela Cheia a Pagar
             </p>
             <p className="text-3xl font-black" style={{ fontFamily: 'Montserrat', color: 'var(--gold)' }}>
               {fmt(r.parcela)}
             </p>
             <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
-              {data.prazoTotal} meses · {data.taxaAdm}% adm
+              pagará mensalmente após contemplação
             </p>
           </div>
         </div>
@@ -279,6 +279,15 @@ function Step2({
   setData: React.Dispatch<React.SetStateAction<Data>>;
   r: R;
 }) {
+  const [ofertaInput, setOfertaInput] = useState(String(data.ofertaTotalPercent));
+
+  useEffect(() => {
+    setOfertaInput(String(data.ofertaTotalPercent));
+  }, [data.ofertaTotalPercent]);
+
+  const ofertaNum = parseFloat(ofertaInput);
+  const ofertaAbaixoMinimo = ofertaInput !== '' && !isNaN(ofertaNum) && ofertaNum < data.tierSelecionado;
+
   const selectTier = (t: Tier) => {
     setData(d => ({
       ...d,
@@ -429,16 +438,25 @@ function Step2({
             <Label>Oferta total ofertada (%)</Label>
             <input
               type="number" inputMode="decimal" step="1" min={data.tierSelecionado} max={100}
-              value={data.ofertaTotalPercent === 0 ? '' : data.ofertaTotalPercent}
+              value={ofertaInput}
               placeholder={String(data.tierSelecionado)}
-              onChange={e => {
-                const v = e.target.value === '' ? data.tierSelecionado : Math.max(data.tierSelecionado, Number(e.target.value));
-                set('ofertaTotalPercent')(v);
+              onChange={e => setOfertaInput(e.target.value)}
+              onBlur={() => {
+                const num = parseFloat(ofertaInput);
+                const enforced = isNaN(num) ? data.tierSelecionado : Math.max(data.tierSelecionado, Math.min(100, num));
+                setOfertaInput(String(enforced));
+                set('ofertaTotalPercent')(enforced);
               }}
             />
-            <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
-              mínimo: {data.tierSelecionado}% (carta) — o excedente vem do seu bolso
-            </p>
+            {ofertaAbaixoMinimo ? (
+              <p className="text-xs mt-1 font-bold" style={{ color: '#ff6b6b' }}>
+                não aceita menos de {data.tierSelecionado}% — mínimo é o percentual da carta selecionada
+              </p>
+            ) : (
+              <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
+                mínimo: {data.tierSelecionado}% (carta) — o excedente vem do seu bolso
+              </p>
+            )}
           </div>
 
           {/* Breakdown da oferta */}
