@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
-import { Zap, Building2, TrendingUp, ArrowRight, Gavel, HelpCircle, Calculator, Shuffle } from 'lucide-react';
+import { Zap, Building2, TrendingUp, ArrowRight, Gavel, HelpCircle, Calculator, Shuffle, MessageSquareQuote } from 'lucide-react';
 
-export type Purpose = 'quickcalc' | 'lance' | 'sorteio' | 'acquisition' | 'return' | 'diagnostico' | 'comissao';
+export type Purpose = 'quickcalc' | 'lance' | 'sorteio' | 'acquisition' | 'return' | 'diagnostico' | 'atendimento' | 'comissao';
 
 interface Props {
   onSelect: (purpose: Purpose) => void;
@@ -13,6 +13,18 @@ const card = {
 };
 
 const cards = [
+  {
+    id: 'atendimento' as Purpose,
+    iconEl: <MessageSquareQuote size={24} style={{ color: '#031715' }} />,
+    iconBg: '#5EB9AA',
+    title: 'Atendimento\nAssistido',
+    description:
+      'Conduza a conversa com perguntas guiadas, radar do cliente e sugestoes simples para abordar objecoes em reuniao.',
+    cta: 'Iniciar atendimento',
+    ctaColor: '#5EB9AA',
+    glowColor: 'rgba(94,185,170,0.22)',
+    borderHover: 'rgba(94,185,170,0.4)',
+  },
   {
     id: 'diagnostico' as Purpose,
     iconEl: <HelpCircle size={24} style={{ color: '#5EB9AA' }} />,

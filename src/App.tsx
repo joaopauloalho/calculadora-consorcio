@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import PurposeScreen, { type Purpose } from './screens/PurposeScreen';
 import MatrixScreen from './screens/MatrixScreen';
 import DiagnosticoScreen from './screens/DiagnosticoScreen';
+import AtendimentoScreen from './screens/AtendimentoScreen';
 import CompraeConstrucao from './tools/CompraeConstrucao';
 import VendaDaCartaContemplada from './tools/VendaDaCartaContemplada';
 import AluguelConsorcio from './tools/AluguelConsorcio';
@@ -13,7 +14,7 @@ import SimuladorLance from './tools/SimuladorLance';
 import CalculadoraLance from './tools/CalculadoraLance';
 import ComissaoVendedor from './tools/ComissaoVendedor';
 
-type View = 'purpose' | 'matrix' | 'tool' | 'quickcalc' | 'lance' | 'sorteio' | 'diagnostico' | 'comissao';
+type View = 'purpose' | 'matrix' | 'tool' | 'quickcalc' | 'lance' | 'sorteio' | 'diagnostico' | 'atendimento' | 'comissao';
 type Path = 'acquisition' | 'return';
 
 const pageVariants = {
@@ -36,6 +37,8 @@ export default function App() {
       setView('sorteio');
     } else if (purpose === 'diagnostico') {
       setView('diagnostico');
+    } else if (purpose === 'atendimento') {
+      setView('atendimento');
     } else if (purpose === 'comissao') {
       setView('comissao');
     } else {
@@ -76,6 +79,24 @@ export default function App() {
       {view === 'diagnostico' && (
         <motion.div key="diagnostico" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}>
           <DiagnosticoScreen
+            onBack={() => setView('purpose')}
+            onSelect={(t) => {
+              if (t === 'quickcalc') {
+                setView('quickcalc');
+              } else if (t === 'lance') {
+                setView('lance');
+              } else {
+                setTool(t);
+                setView('tool');
+              }
+            }}
+          />
+        </motion.div>
+      )}
+
+      {view === 'atendimento' && (
+        <motion.div key="atendimento" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}>
+          <AtendimentoScreen
             onBack={() => setView('purpose')}
             onSelect={(t) => {
               if (t === 'quickcalc') {
