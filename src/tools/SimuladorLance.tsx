@@ -3,6 +3,8 @@ import { ChevronLeft, Trophy, Zap, Shield, Star, Diamond, CheckCircle2, XCircle,
 import { fmt } from '../lib/calculations';
 import BRLInput from '../components/BRLInput';
 import { Label } from '../components/shared';
+import ShareButton from '../components/ShareButton';
+import { buildSimuladorLanceMsg } from '../lib/whatsapp';
 
 interface Props {
   onBack: () => void;
@@ -288,6 +290,14 @@ export default function SimuladorLance({ onBack }: Props) {
             );
           })}
         </div>
+
+        <ShareButton
+          message={buildSimuladorLanceMsg({
+            valorCredito,
+            mesesEmDia,
+            elegiveis: resultados,
+          })}
+        />
 
         {/* Info box */}
         <div
