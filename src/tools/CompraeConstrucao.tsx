@@ -11,6 +11,8 @@ import { calculate, fmt, type SimData, INCC_MEDIO_HISTORICO } from '../lib/calcu
 import ComparisonChart from '../components/ComparisonChart';
 import FunilContemplacao from '../components/FunilContemplacao';
 import { Label, StatCard, GoldInput, ProgressDots, StepHeader, slideVariants } from '../components/shared';
+import ShareButton from '../components/ShareButton';
+import { buildCompraConstrucaoMsg } from '../lib/whatsapp';
 
 const TOTAL_STEPS = 8;
 
@@ -612,6 +614,7 @@ function Step8({ data, set, r }: { data: SimData; set: (k: keyof SimData) => (v:
           Contemplar mais cedo → menos capital empregado → maior rentabilidade mensal
         </p>
       </div>
+      <ShareButton message={buildCompraConstrucaoMsg(data, r)} />
     </div>
   );
 }
