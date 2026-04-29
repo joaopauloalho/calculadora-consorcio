@@ -4,6 +4,8 @@ import { calculateCartaAplicada, fmt, type CartaAplicadaData } from '../lib/calc
 import BRLInput from '../components/BRLInput';
 import { Label, AnimatedValue, ToggleRow } from '../components/shared';
 import { useConsorcioInputData } from '../hooks/useConsorcioInputData';
+import ShareButton from '../components/ShareButton';
+import { buildCartaAplicadaMsg } from '../lib/whatsapp';
 
 interface Props {
   onBack: () => void;
@@ -372,6 +374,7 @@ export default function CartaAplicada({ onBack }: Props) {
             </div>
 
           </div>
+          <ShareButton message={buildCartaAplicadaMsg(data, r)} />
         </div>
       </div>
     </div>
