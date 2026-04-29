@@ -27,12 +27,13 @@ export default function QuitacaoFinanciamento({ onBack }: Props) {
     taxaAdm: 0.23,
     prazoConsorcio: 220,
     mesContemplacao: 30,
+    tipoSorteio: 'comum',
     trMensal: 0.001,
     inccAnual: INCC_MEDIO_HISTORICO,
   });
 
   const r = useMemo(() => calculateQuitacao(data), [data]);
-  const set = (key: keyof QuitacaoData) => (v: number) => setData((d) => ({ ...d, [key]: v }));
+  const set = <K extends keyof QuitacaoData>(key: K) => (v: QuitacaoData[K]) => setData((d) => ({ ...d, [key]: v }));
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg-black)' }}>
@@ -107,7 +108,7 @@ export default function QuitacaoFinanciamento({ onBack }: Props) {
 
 /* ── Steps ── */
 
-type SetFn = (k: keyof QuitacaoData) => (v: number) => void;
+type SetFn = <K extends keyof QuitacaoData>(k: K) => (v: QuitacaoData[K]) => void;
 type Results = ReturnType<typeof calculateQuitacao>;
 
 function Step1({ data, set, r }: { data: QuitacaoData; set: SetFn; r: Results }) {
@@ -321,6 +322,8 @@ function Step3({ data, set, r }: { data: QuitacaoData; set: SetFn; r: Results })
         prazoTotal={data.prazoConsorcio}
         mesContemplacao={data.mesContemplacao}
         onChangeMes={set('mesContemplacao')}
+        tipoSorteio={data.tipoSorteio}
+        onChangeTipoSorteio={set('tipoSorteio')}
       />
 
       <div className="rounded-2xl overflow-hidden border" style={{ borderColor: 'var(--border)' }}>
@@ -361,7 +364,7 @@ function Step3({ data, set, r }: { data: QuitacaoData; set: SetFn; r: Results })
 
       <div className="p-5 rounded-2xl border text-sm" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)', color: 'var(--text-secondary)' }}>
         <Info size={14} className="inline mr-2" style={{ color: 'var(--gold)' }} />
-        Na contemplação, o crédito <strong style={{ color: 'white' }}>{fmt(data.valorCredito)}</strong> quita o banco de uma vez. A partir daí, você paga apenas <strong style={{ color: 'white' }}>{fmt(r.parcelaCheiaConsorcio)}/mês</strong> ao consórcio.
+        Na contemplação, o crédito <strong style={{ color: 'white' }}>{fmt(r.creditoNaContemplacao)}</strong> quita o banco de uma vez. A partir daí, você paga apenas <strong style={{ color: 'white' }}>{fmt(r.parcelaCheiaConsorcio)}/mês</strong> ao consórcio.
       </div>
     </div>
   );

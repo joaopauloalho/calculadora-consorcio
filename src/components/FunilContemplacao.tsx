@@ -1,12 +1,22 @@
 import { motion } from 'framer-motion';
+import { TipoSorteioSelect } from './shared';
+import type { TipoSorteioId } from '../lib/constants';
 
 interface Props {
   prazoTotal: number;
   mesContemplacao: number;
   onChangeMes: (v: number) => void;
+  tipoSorteio?: TipoSorteioId;
+  onChangeTipoSorteio?: (v: TipoSorteioId) => void;
 }
 
-export default function FunilContemplacao({ prazoTotal, mesContemplacao, onChangeMes }: Props) {
+export default function FunilContemplacao({
+  prazoTotal,
+  mesContemplacao,
+  onChangeMes,
+  tipoSorteio,
+  onChangeTipoSorteio,
+}: Props) {
   const W = 400;
   const H = 100;
 
@@ -108,6 +118,14 @@ export default function FunilContemplacao({ prazoTotal, mesContemplacao, onChang
           <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>Mês {prazoTotal}</span>
         </div>
       </div>
+
+      {onChangeTipoSorteio && (
+        <TipoSorteioSelect
+          value={tipoSorteio}
+          onChange={onChangeTipoSorteio}
+          compact
+        />
+      )}
 
       {/* Info contextual */}
       <div className="grid grid-cols-3 gap-3 text-center">

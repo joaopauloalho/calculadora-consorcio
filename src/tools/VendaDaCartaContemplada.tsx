@@ -27,12 +27,13 @@ export default function VendaDaCartaContemplada({ onBack }: Props) {
     taxaAdm: 0.23,
     prazoTotal: 220,
     mesContemplacao: 30,
+    tipoSorteio: 'comum',
     agioPercent: 20,
     inccAnual: 3.5,
   });
 
   const r = useMemo(() => calculateVendaCarta(data), [data]);
-  const set = (key: keyof VendaCartaData) => (v: number) => setData((d) => ({ ...d, [key]: v }));
+  const set = <K extends keyof VendaCartaData>(key: K) => (v: VendaCartaData[K]) => setData((d) => ({ ...d, [key]: v }));
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg-black)' }}>
@@ -114,7 +115,7 @@ export default function VendaDaCartaContemplada({ onBack }: Props) {
 
 /* ── Steps ── */
 
-type SetFn = (k: keyof VendaCartaData) => (v: number) => void;
+type SetFn = <K extends keyof VendaCartaData>(k: K) => (v: VendaCartaData[K]) => void;
 type Results = ReturnType<typeof calculateVendaCarta>;
 
 function Step1({ data, set, r }: { data: VendaCartaData; set: SetFn; r: Results }) {
@@ -154,6 +155,8 @@ function Step2({ data, set, r }: { data: VendaCartaData; set: SetFn; r: Results 
         prazoTotal={data.prazoTotal}
         mesContemplacao={data.mesContemplacao}
         onChangeMes={set('mesContemplacao')}
+        tipoSorteio={data.tipoSorteio}
+        onChangeTipoSorteio={set('tipoSorteio')}
       />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <StatCard

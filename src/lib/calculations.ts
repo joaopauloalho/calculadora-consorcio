@@ -1,3 +1,5 @@
+import { aplicarReducaoTipoSorteio, type TipoSorteioId } from './constants';
+
 /** INCC médio histórico (2020-2024) aplicando teto de 5% a.a. = ~4.57% a.a. */
 export const INCC_MEDIO_HISTORICO = 4.57;
 
@@ -35,6 +37,7 @@ export interface SimData {
   prazoTotal: number;
   taxaAdm: number;
   mesContemplacao: number;
+  tipoSorteio?: TipoSorteioId;
   seguroMensalPercent: number;
   mesesObra: number;
   valorVendaMercado: number;
@@ -99,7 +102,10 @@ export function calculate(data: SimData): SimResults {
   const custoTotalAquisicaoConsorcio = data.entradaVenda + saldoDevedorPosObra;
   const lucroTotal = data.entradaVenda - totalDesembolsado;
   const lucroMensalMedio = lucroTotal / totalMesesInvestindo;
-  const creditoReajustadoNaContemplacao = aplicarReajusteINCC(totalCredito, data.inccAnual, data.mesContemplacao);
+  const creditoReajustadoNaContemplacao = aplicarReducaoTipoSorteio(
+    aplicarReajusteINCC(totalCredito, data.inccAnual, data.mesContemplacao),
+    data.tipoSorteio,
+  );
 
   // Capital médio ponderado: pré-contemplação + obra
   // Na pré-contemplação: aportes crescendo de 0 → valorInvestidoAteContemplacao
@@ -131,6 +137,7 @@ export interface VendaCartaData {
   taxaAdm: number;
   prazoTotal: number;
   mesContemplacao: number;
+  tipoSorteio?: TipoSorteioId;
   agioPercent: number;  // % do crédito atualizado; valorVendaChave é derivado
   inccAnual: number;   // INCC % a.a. (ex: 3.5 significa 3.5% a.a.)
 }
@@ -153,7 +160,10 @@ export interface VendaCartaResults {
 
 export function calculateVendaCarta(data: VendaCartaData): VendaCartaResults {
   const totalComTaxa = data.valorCredito * (1 + data.taxaAdm);
-  const valorCreditoAtualizado = aplicarReajusteINCC(data.valorCredito, data.inccAnual, data.mesContemplacao);
+  const valorCreditoAtualizado = aplicarReducaoTipoSorteio(
+    aplicarReajusteINCC(data.valorCredito, data.inccAnual, data.mesContemplacao),
+    data.tipoSorteio,
+  );
   const totalDesembolsado = data.mesContemplacao * data.valorParcela;
   const saldoDevedorNaContemplacao = Math.max(0, totalComTaxa - totalDesembolsado);
 
@@ -188,6 +198,7 @@ export interface AluguelData {
   taxaAdm: number;
   prazoTotal: number;
   mesContemplacao: number;
+  tipoSorteio?: TipoSorteioId;
   valorImovelFinal: number;
   rendimentoPercent: number;
   numOperacoes: number;
@@ -229,7 +240,10 @@ export function calculateAluguel(data: AluguelData): AluguelResults {
   const rendaLiquidaMensal = rendaBrutaMensal * (1 - VACANCIA); // deduz vacância 5%; IR não incluído
   const totalInvestidoTodas = data.numOperacoes * totalDesembolsado;
   const inccEfetivo = data.inccAnual ?? INCC_MEDIO_HISTORICO;
-  const creditoReajustadoContemplacao = aplicarReajusteINCC(data.valorCredito, inccEfetivo, data.mesContemplacao);
+  const creditoReajustadoContemplacao = aplicarReducaoTipoSorteio(
+    aplicarReajusteINCC(data.valorCredito, inccEfetivo, data.mesContemplacao),
+    data.tipoSorteio,
+  );
 
   return {
     totalComTaxa, parcelaCheia, meiaParcela,
@@ -249,6 +263,7 @@ export interface QuitacaoData {
   taxaAdm: number;
   prazoConsorcio: number;
   mesContemplacao: number;
+  tipoSorteio?: TipoSorteioId;
   cetBanco?: number;   // CET banco % a.a. (opcional)
   trMensal?: number;   // TR mensal default 0.001 (0.1%/mês)
   inccAnual?: number;  // INCC anual default INCC_MEDIO_HISTORICO (4.57%)
@@ -272,6 +287,7 @@ export interface QuitacaoResults {
   mesesDividaConsorcio: number;
   tempoEliminado: number;
   creditoCobre: boolean;
+  creditoNaContemplacao: number;
   mesCruzamento: number | null;
   excedenteCreditoSaldo: number;
 }
@@ -292,7 +308,10 @@ export function calcularEvolucaoCreditoSaldo(data: QuitacaoData): PontoEvolucao[
   const maxMeses = Math.max(data.prazoRestanteBanco, data.prazoConsorcio);
 
   for (let mes = 0; mes <= maxMeses; mes += 12) {
-    const creditoConsorcio = aplicarReajusteINCC(data.valorCredito, inccAnual, mes);
+    const creditoConsorcio = aplicarReducaoTipoSorteio(
+      aplicarReajusteINCC(data.valorCredito, inccAnual, mes),
+      data.tipoSorteio,
+    );
     const diferenca = creditoConsorcio - saldo;
     pontos.push({ mes, saldoDevedor: Math.max(0, saldo), creditoConsorcio, diferenca });
 
@@ -327,17 +346,23 @@ export function calculateQuitacao(data: QuitacaoData): QuitacaoResults {
   const mesesDividaBanco = data.prazoRestanteBanco;
   const mesesDividaConsorcio = data.prazoConsorcio;
   const tempoEliminado = mesesDividaBanco - mesesDividaConsorcio;
-  const creditoCobre = data.valorCredito >= data.saldoDevedorBanco;
-
   const trMensal = data.trMensal ?? 0.001;
   const inccAnual = data.inccAnual ?? INCC_MEDIO_HISTORICO;
+  const creditoNaContemplacao = aplicarReducaoTipoSorteio(
+    aplicarReajusteINCC(data.valorCredito, inccAnual, data.mesContemplacao),
+    data.tipoSorteio,
+  );
+  const creditoCobre = creditoNaContemplacao >= data.saldoDevedorBanco;
 
   // Simular saldo com TR ao longo do tempo para encontrar o mês de cruzamento
   let saldoSimulado = data.saldoDevedorBanco;
   let mesCruzamento: number | null = null;
   for (let mes = 1; mes <= data.prazoRestanteBanco; mes++) {
     saldoSimulado = Math.max(0, saldoSimulado * (1 + trMensal) - data.parcelaBanco);
-    const creditoMes = aplicarReajusteINCC(data.valorCredito, inccAnual, mes);
+    const creditoMes = aplicarReducaoTipoSorteio(
+      aplicarReajusteINCC(data.valorCredito, inccAnual, mes),
+      data.tipoSorteio,
+    );
     if (creditoMes >= saldoSimulado && mesCruzamento === null) {
       mesCruzamento = mes;
     }
@@ -349,7 +374,10 @@ export function calculateQuitacao(data: QuitacaoData): QuitacaoResults {
   for (let i = 0; i < mesRef; i++) {
     saldoNoMesRef = Math.max(0, saldoNoMesRef * (1 + trMensal) - data.parcelaBanco);
   }
-  const creditoNoMesRef = aplicarReajusteINCC(data.valorCredito, inccAnual, mesRef);
+  const creditoNoMesRef = aplicarReducaoTipoSorteio(
+    aplicarReajusteINCC(data.valorCredito, inccAnual, mesRef),
+    data.tipoSorteio,
+  );
   const excedenteCreditoSaldo = Math.max(0, creditoNoMesRef - saldoNoMesRef);
 
   return {
@@ -361,6 +389,7 @@ export function calculateQuitacao(data: QuitacaoData): QuitacaoResults {
     custoTotalConsorcio, economiaNominal,
     mesesDividaBanco, mesesDividaConsorcio, tempoEliminado,
     creditoCobre,
+    creditoNaContemplacao,
     mesCruzamento,
     excedenteCreditoSaldo,
   };
@@ -375,6 +404,7 @@ export interface CartaAplicadaData {
   valorCredito: number;
   prazoTotal: number;
   mesContemplacao: number;
+  tipoSorteio?: TipoSorteioId;
   selicAnual: number;
   paymentMode: PaymentMode;
   comSeguro: boolean;
@@ -421,7 +451,10 @@ export function calculateCartaAplicada(data: CartaAplicadaData): CartaAplicadaRe
 
   const correcaoAnual = data.assetType === 'imovel' ? 0.05 : 0.04;
   const correcaoIndice = data.assetType === 'imovel' ? 'INCC' : 'IPCA';
-  const creditoNaContemplacao = aplicarReajusteINCC(data.valorCredito, correcaoAnual * 100, data.mesContemplacao);
+  const creditoNaContemplacao = aplicarReducaoTipoSorteio(
+    aplicarReajusteINCC(data.valorCredito, correcaoAnual * 100, data.mesContemplacao),
+    data.tipoSorteio,
+  );
 
   const cdiAnual = (data.selicAnual - 0.10) / 100;
   const cdiMensal = Math.pow(1 + cdiAnual, 1 / 12) - 1;
@@ -459,6 +492,7 @@ export interface QuickCalcData {
   comSeguro: boolean;
   paymentMode: PaymentMode;
   mesContemplacao: number;
+  tipoSorteio?: TipoSorteioId;
   percentAgio: number;
 }
 
@@ -581,7 +615,10 @@ export function calculateQuickCalc(data: QuickCalcData): QuickCalcResults {
   // Crédito atualizado na contemplação (INCC 5% a.a. imóvel / IPCA 4% a.a. veículo)
   const correcaoAnual = data.assetType === 'imovel' ? 0.05 : 0.04;
   const correcaoIndice = data.assetType === 'imovel' ? 'INCC' : 'IPCA';
-  const creditoAtualizado = aplicarReajusteINCC(data.valorCredito, correcaoAnual * 100, data.mesContemplacao);
+  const creditoAtualizado = aplicarReducaoTipoSorteio(
+    aplicarReajusteINCC(data.valorCredito, correcaoAnual * 100, data.mesContemplacao),
+    data.tipoSorteio,
+  );
 
   // Ágio = % sobre o crédito atualizado na contemplação (valor do dia)
   const valorVenda = creditoAtualizado * (data.percentAgio / 100);

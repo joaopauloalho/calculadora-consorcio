@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ChevronLeft, Trophy, Zap, Shield, Star, Diamond, CheckCircle2, XCircle, Info } from 'lucide-react';
-import { fmt } from '../lib/calculations';
+import { aplicarReajusteINCC, fmt, INCC_MEDIO_HISTORICO } from '../lib/calculations';
 import BRLInput from '../components/BRLInput';
 import { Label } from '../components/shared';
 import ShareButton from '../components/ShareButton';
@@ -12,6 +12,15 @@ interface Props {
 }
 
 const TIPOS_LANCE = [
+  {
+    nome: 'Sorteio Comum',
+    carencia: 0,
+    percentLance: 0,
+    icon: CheckCircle2,
+    cor: '#5EB9AA',
+    corBg: 'rgba(94,185,170,0.08)',
+    descricao: 'Contemplação por sorteio tradicional. Não reduz o crédito.',
+  },
   {
     nome: 'Ello Sem Carência',
     carencia: 0,
@@ -61,12 +70,15 @@ const TIPOS_LANCE = [
 
 export default function SimuladorLance({ onBack }: Props) {
   const [valorCredito, setValorCredito] = usePersistedState('prestige:simulador:valorCredito', 1000000);
+  const [mesSorteio, setMesSorteio] = usePersistedState('prestige:simulador:mesSorteio', 24);
+  const [inccAnual, setInccAnual] = usePersistedState('prestige:simulador:inccAnual', INCC_MEDIO_HISTORICO);
   const [mesesEmDia, setMesesEmDia] = usePersistedState('prestige:simulador:mesesEmDia', 0);
+  const creditoAtualizado = aplicarReajusteINCC(valorCredito, inccAnual, mesSorteio);
 
   const resultados = TIPOS_LANCE.map((tipo) => {
     const elegivel = mesesEmDia >= tipo.carencia;
-    const valorLance = Math.round(valorCredito * tipo.percentLance / 100);
-    const creditoEfetivo = valorCredito - valorLance;
+    const valorLance = Math.round(creditoAtualizado * tipo.percentLance / 100);
+    const creditoEfetivo = creditoAtualizado - valorLance;
     const reducaoCredito = tipo.percentLance;
     const faltamMeses = Math.max(0, tipo.carencia - mesesEmDia);
     return { ...tipo, elegivel, valorLance, creditoEfetivo, reducaoCredito, faltamMeses };
@@ -91,7 +103,7 @@ export default function SimuladorLance({ onBack }: Props) {
             className="text-[10px] font-bold uppercase tracking-[0.35em] mb-3"
             style={{ color: 'var(--gold)' }}
           >
-            Estratégia de Contemplação
+            Estratégia de Sorteio
           </p>
           <h2
             className="text-3xl md:text-5xl font-black leading-tight"
@@ -99,7 +111,7 @@ export default function SimuladorLance({ onBack }: Props) {
           >
             Simulador de
             <br />
-            <span style={{ color: 'var(--gold)' }}>Lance</span>
+            <span style={{ color: 'var(--gold)' }}>Sorteio</span>
           </h2>
         </div>
 
@@ -116,6 +128,54 @@ export default function SimuladorLance({ onBack }: Props) {
                 onChange={setValorCredito}
                 placeholder="1.000.000,00"
               />
+            </div>
+
+            <div>
+              <Label>Mês do Sorteio</Label>
+              <input
+                type="number"
+                inputMode="numeric"
+                min={1}
+                max={240}
+                value={mesSorteio === 0 ? '' : mesSorteio}
+                placeholder="24"
+                onChange={(e) => {
+                  const n = parseInt(e.target.value, 10);
+                  setMesSorteio(isNaN(n) ? 0 : Math.min(240, Math.max(1, n)));
+                }}
+                className="rounded-xl px-4 py-3 border text-base font-bold w-full"
+                style={{
+                  background: 'rgba(255,255,255,0.04)',
+                  borderColor: 'var(--border)',
+                  color: 'var(--text-primary)',
+                  fontFamily: 'Montserrat',
+                  outline: 'none',
+                }}
+              />
+            </div>
+
+            <div>
+              <Label>Atualização do Crédito (% a.a.)</Label>
+              <input
+                type="number"
+                inputMode="decimal"
+                min={0}
+                step="0.1"
+                value={inccAnual === 0 ? '' : inccAnual}
+                placeholder={String(INCC_MEDIO_HISTORICO)}
+                onChange={(e) => setInccAnual(e.target.value === '' ? 0 : Number(e.target.value))}
+                className="rounded-xl px-4 py-3 border text-base font-bold w-full"
+                style={{
+                  background: 'rgba(255,255,255,0.04)',
+                  borderColor: 'var(--border)',
+                  color: 'var(--text-primary)',
+                  fontFamily: 'Montserrat',
+                  outline: 'none',
+                }}
+              />
+              <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
+                Crédito no mês {mesSorteio}: <strong style={{ color: 'var(--gold)' }}>{fmt(creditoAtualizado)}</strong>
+              </p>
             </div>
 
             <div>
@@ -148,7 +208,7 @@ export default function SimuladorLance({ onBack }: Props) {
             <span style={{ color: 'var(--gold)', fontFamily: 'Montserrat' }}>
               {totalElegiveis}
             </span>{' '}
-            tipo{totalElegiveis !== 1 ? 's' : ''} de lance
+            tipo{totalElegiveis !== 1 ? 's' : ''} de sorteio
           </p>
         </div>
 
@@ -234,11 +294,11 @@ export default function SimuladorLance({ onBack }: Props) {
                   {/* Lance */}
                   <div className="flex justify-between items-center">
                     <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
-                      Lance
+                      Redução
                     </span>
                     {isDiamante ? (
                       <span className="text-sm font-black" style={{ color: '#B9F2FF', fontFamily: 'Montserrat' }}>
-                        Automático
+                        Sem redução
                       </span>
                     ) : (
                       <span className="text-sm font-black" style={{ color: tipo.elegivel ? tipo.cor : 'var(--text-secondary)', fontFamily: 'Montserrat' }}>
@@ -250,7 +310,7 @@ export default function SimuladorLance({ onBack }: Props) {
                   {/* Crédito Efetivo */}
                   <div className="flex justify-between items-center">
                     <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
-                      Crédito Efetivo
+                      Crédito no Sorteio
                     </span>
                     <span
                       className="text-sm font-black"
@@ -294,7 +354,7 @@ export default function SimuladorLance({ onBack }: Props) {
 
         <ShareButton
           message={buildSimuladorLanceMsg({
-            valorCredito,
+            valorCredito: creditoAtualizado,
             mesesEmDia,
             elegiveis: resultados,
           })}
@@ -307,8 +367,8 @@ export default function SimuladorLance({ onBack }: Props) {
         >
           <Info size={16} className="flex-shrink-0 mt-0.5" style={{ color: 'var(--gold)' }} />
           <p className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-            <span className="font-bold" style={{ color: 'var(--text-primary)' }}>Lance embutido:</span>{' '}
-            o valor do lance sai do seu crédito. A contemplação ocorre na próxima assembleia se seu lance for o maior. Após contemplado, seu crédito disponível é o crédito efetivo acima.
+            <span className="font-bold" style={{ color: 'var(--text-primary)' }}>Sorteio comum:</span>{' '}
+            não reduz o crédito. Nas modalidades Ello com redução, o percentual sai do crédito atualizado no mês escolhido.
           </p>
         </div>
       </div>

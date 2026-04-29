@@ -13,7 +13,7 @@ import SimuladorLance from './tools/SimuladorLance';
 import CalculadoraLance from './tools/CalculadoraLance';
 import ComissaoVendedor from './tools/ComissaoVendedor';
 
-type View = 'purpose' | 'matrix' | 'tool' | 'quickcalc' | 'lance' | 'diagnostico' | 'comissao';
+type View = 'purpose' | 'matrix' | 'tool' | 'quickcalc' | 'lance' | 'sorteio' | 'diagnostico' | 'comissao';
 type Path = 'acquisition' | 'return';
 
 const pageVariants = {
@@ -32,6 +32,8 @@ export default function App() {
       setView('quickcalc');
     } else if (purpose === 'lance') {
       setView('lance');
+    } else if (purpose === 'sorteio') {
+      setView('sorteio');
     } else if (purpose === 'diagnostico') {
       setView('diagnostico');
     } else if (purpose === 'comissao') {
@@ -128,6 +130,12 @@ export default function App() {
       {view === 'lance' && (
         <motion.div key="lance" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}>
           <CalculadoraLance onBack={() => setView('purpose')} />
+        </motion.div>
+      )}
+
+      {view === 'sorteio' && (
+        <motion.div key="sorteio" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}>
+          <SimuladorLance onBack={() => setView('purpose')} />
         </motion.div>
       )}
 

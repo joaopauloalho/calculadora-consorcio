@@ -5,9 +5,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ArrowLeft, ArrowRight, Gavel, Info, RefreshCw, CheckCircle2, X } from 'lucide-react';
 import { aplicarReajusteINCC, fmt, INCC_MEDIO_HISTORICO } from '../lib/calculations';
 import BRLInput from '../components/BRLInput';
-import { Label, StatCard, ProgressDots, StepHeader, slideVariants } from '../components/shared';
+import { Label, StatCard, ProgressDots, StepHeader, slideVariants, TipoSorteioSelect } from '../components/shared';
 import ShareButton from '../components/ShareButton';
 import { buildLanceComparacaoMsg, buildLanceMsg } from '../lib/whatsapp';
+import { aplicarReducaoTipoSorteio, type TipoSorteioId } from '../lib/constants';
 
 interface Props { onBack: () => void; }
 
@@ -19,6 +20,7 @@ interface Data {
   prazoTotal: number;
   taxaAdm: number;
   mesContemplacao: number;
+  tipoSorteio: TipoSorteioId;
   inccAnual: number;
   tipoLance: TipoLance;
   lancePercent: number;
@@ -29,7 +31,10 @@ interface Data {
 }
 
 function calcular(d: Data) {
-  const valorCreditoAtualizado = aplicarReajusteINCC(d.valorCredito, d.inccAnual, d.mesContemplacao);
+  const valorCreditoAtualizado = aplicarReducaoTipoSorteio(
+    aplicarReajusteINCC(d.valorCredito, d.inccAnual, d.mesContemplacao),
+    d.tipoSorteio,
+  );
   const parcela = d.prazoTotal > 0 ? (d.valorCredito * (1 + d.taxaAdm / 100)) / d.prazoTotal : 0;
   const parcelasRestantes = Math.max(0, d.prazoTotal - d.mesContemplacao);
   const saldoDevedorBruto = parcelasRestantes * parcela;
@@ -73,6 +78,7 @@ export default function CalculadoraLance({ onBack }: Props) {
     prazoTotal: 180,
     taxaAdm: 23,
     mesContemplacao: 24,
+    tipoSorteio: 'comum',
     inccAnual: INCC_MEDIO_HISTORICO,
     tipoLance: 'embutido',
     lancePercent: 30,
@@ -198,7 +204,7 @@ function Step1({ data, set, r }: { data: Data; set: <K extends keyof Data>(k: K)
           <BRLInput value={data.valorCredito} onChange={set('valorCredito')} />
         </div>
         <div>
-          <Label>Mês do Lance</Label>
+          <Label>Mês do Sorteio/Lance</Label>
           <input
             type="number" inputMode="numeric" min={1} max={220}
             value={data.mesContemplacao === 0 ? '' : data.mesContemplacao}
@@ -236,6 +242,12 @@ function Step1({ data, set, r }: { data: Data; set: <K extends keyof Data>(k: K)
           <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>histórico: {INCC_MEDIO_HISTORICO}% a.a.</p>
         </div>
       </div>
+
+      <TipoSorteioSelect
+        value={data.tipoSorteio}
+        onChange={set('tipoSorteio')}
+        compact
+      />
 
       <div
         className="rounded-2xl overflow-hidden border"

@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
-import { Zap, Building2, TrendingUp, ArrowRight, Gavel, HelpCircle, Calculator } from 'lucide-react';
+import { Zap, Building2, TrendingUp, ArrowRight, Gavel, HelpCircle, Calculator, Shuffle } from 'lucide-react';
 
-export type Purpose = 'quickcalc' | 'lance' | 'acquisition' | 'return' | 'diagnostico' | 'comissao';
+export type Purpose = 'quickcalc' | 'lance' | 'sorteio' | 'acquisition' | 'return' | 'diagnostico' | 'comissao';
 
 interface Props {
   onSelect: (purpose: Purpose) => void;
@@ -33,6 +33,18 @@ const cards = [
     description:
       'Simule qualquer cota em segundos. Imóvel ou veículo, com ou sem ágio — resultado imediato para fechar em reunião.',
     cta: 'Calcular agora',
+    ctaColor: 'var(--gold)',
+    glowColor: 'rgba(201, 168, 76, 0.22)',
+    borderHover: 'rgba(201, 168, 76, 0.4)',
+  },
+  {
+    id: 'sorteio' as Purpose,
+    iconEl: <Shuffle size={24} style={{ color: '#031715' }} />,
+    iconBg: 'var(--gold)',
+    title: 'Simulador\nde Sorteio',
+    description:
+      'Escolha mês e tipo de sorteio, veja o crédito atualizado e compare comum, prata, ouro e diamante.',
+    cta: 'Simular sorteio',
     ctaColor: 'var(--gold)',
     glowColor: 'rgba(201, 168, 76, 0.22)',
     borderHover: 'rgba(201, 168, 76, 0.4)',

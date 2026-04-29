@@ -26,6 +26,7 @@ export default function AluguelConsorcio({ onBack }: Props) {
     taxaAdm: 0.23,
     prazoTotal: 220,
     mesContemplacao: 30,
+    tipoSorteio: 'comum',
     valorImovelFinal: 500000,
     rendimentoPercent: 0.005,
     numOperacoes: 3,
@@ -35,10 +36,10 @@ export default function AluguelConsorcio({ onBack }: Props) {
   const [numCiclos, setNumCiclos] = useState(1);
 
   const r = useMemo(() => calculateAluguel(data), [data]);
-  const set = (key: keyof AluguelData) => (v: number) => setData((d) => {
+  const set = <K extends keyof AluguelData>(key: K) => (v: AluguelData[K]) => setData((d) => {
     const updates: Partial<AluguelData> = { [key]: v };
     // Mantém valorImovelFinal sincronizado com valorCredito enquanto não editado separadamente
-    if (key === 'valorCredito' && d.valorImovelFinal === d.valorCredito) {
+    if (key === 'valorCredito' && typeof v === 'number' && d.valorImovelFinal === d.valorCredito) {
       updates.valorImovelFinal = v;
     }
     return { ...d, ...updates };
@@ -129,7 +130,7 @@ export default function AluguelConsorcio({ onBack }: Props) {
 
 /* ── Steps ── */
 
-type SetFn = (k: keyof AluguelData) => (v: number) => void;
+type SetFn = <K extends keyof AluguelData>(k: K) => (v: AluguelData[K]) => void;
 type Results = ReturnType<typeof calculateAluguel>;
 
 function Step1({ data, set, r }: { data: AluguelData; set: SetFn; r: Results }) {
@@ -179,6 +180,8 @@ function Step2({ data, set, r }: { data: AluguelData; set: SetFn; r: Results }) 
         prazoTotal={data.prazoTotal}
         mesContemplacao={data.mesContemplacao}
         onChangeMes={set('mesContemplacao')}
+        tipoSorteio={data.tipoSorteio}
+        onChangeTipoSorteio={set('tipoSorteio')}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

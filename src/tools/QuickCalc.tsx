@@ -8,7 +8,7 @@ import {
   type QuickCalcData,
 } from '../lib/calculations';
 import BRLInput from '../components/BRLInput';
-import { Label, AnimatedValue, ToggleRow } from '../components/shared';
+import { Label, AnimatedValue, ToggleRow, TipoSorteioSelect } from '../components/shared';
 import { useConsorcioInputData } from '../hooks/useConsorcioInputData';
 import ShareButton from '../components/ShareButton';
 import { buildQuickCalcMsg } from '../lib/whatsapp';
@@ -72,6 +72,7 @@ export default function QuickCalc({ onBack }: Props) {
     comSeguro: false,
     paymentMode: 'meia',
     mesContemplacao: 24,
+    tipoSorteio: 'comum',
     percentAgio: 20,
   }, undefined, 'prestige:quickcalc:data');
   const [venderComLucro, setVenderComLucro] = useState(false);
@@ -320,7 +321,7 @@ export default function QuickCalc({ onBack }: Props) {
             {/* Contemplação slider */}
             <div>
               <div className="flex justify-between items-center mb-2">
-                <Label>Mês de Contemplação</Label>
+                <Label>Mês do Sorteio</Label>
                 <span
                   className="text-sm font-black"
                   style={{ color: 'var(--gold)', fontFamily: 'Montserrat' }}
@@ -344,6 +345,11 @@ export default function QuickCalc({ onBack }: Props) {
                 <span>Mês {data.prazoTotal}</span>
               </div>
             </div>
+
+            <TipoSorteioSelect
+              value={data.tipoSorteio}
+              onChange={set('tipoSorteio')}
+            />
 
             {/* Vender com lucro toggle */}
             <ToggleRow
@@ -441,7 +447,7 @@ export default function QuickCalc({ onBack }: Props) {
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--text-secondary)' }}>
-                    Crédito Atualizado na Contemplação
+                    Crédito Atualizado no Sorteio
                   </p>
                   <p className="text-xl font-black" style={{ fontFamily: 'Montserrat', color: 'var(--gold)' }}>
                     <AnimatedValue value={fmt(r.creditoAtualizado)} />
@@ -455,7 +461,7 @@ export default function QuickCalc({ onBack }: Props) {
                 </span>
               </div>
               <p className="text-[11px] mt-1.5" style={{ color: 'rgba(160,160,160,0.5)' }}>
-                Valor real do crédito no mês {data.mesContemplacao}, corrigido pelo {r.correcaoIndice}
+                Valor real do crédito no mês {data.mesContemplacao}, corrigido pelo {r.correcaoIndice} e ajustado pelo tipo de sorteio.
               </p>
             </div>
 

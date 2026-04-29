@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ToggleLeft, ToggleRight } from 'lucide-react';
+import { TIPOS_SORTEIO, getTipoSorteio, type TipoSorteioId } from '../lib/constants';
 
 export const slideVariants = {
   enter: (dir: number) => ({ x: dir > 0 ? 60 : -60, opacity: 0 }),
@@ -128,6 +129,56 @@ export function ToggleRow({
         ? <ToggleRight size={22} style={{ color: 'var(--gold)' }} />
         : <ToggleLeft size={22} style={{ color: 'var(--text-secondary)' }} />}
     </button>
+  );
+}
+
+export function TipoSorteioSelect({
+  value = 'comum',
+  onChange,
+  compact = false,
+}: {
+  value?: TipoSorteioId;
+  onChange: (value: TipoSorteioId) => void;
+  compact?: boolean;
+}) {
+  const selecionado = getTipoSorteio(value);
+
+  return (
+    <div>
+      <Label>Tipo de Sorteio</Label>
+      <div className={`grid ${compact ? 'grid-cols-2 md:grid-cols-3' : 'grid-cols-2'} gap-2`}>
+        {TIPOS_SORTEIO.map((tipo) => {
+          const active = tipo.id === selecionado.id;
+          return (
+            <button
+              key={tipo.id}
+              type="button"
+              onClick={() => onChange(tipo.id)}
+              className="min-h-[54px] rounded-xl border px-3 py-2 text-left transition-all"
+              style={{
+                background: active ? `${tipo.cor}18` : 'var(--bg-card)',
+                borderColor: active ? tipo.cor : 'var(--border)',
+              }}
+            >
+              <p
+                className="text-[11px] font-black uppercase tracking-wider leading-tight"
+                style={{ color: active ? tipo.cor : 'var(--text-primary)' }}
+              >
+                {tipo.nome.replace('Ello ', '')}
+              </p>
+              <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
+                {tipo.reducaoCreditoPercent === 0
+                  ? 'sem redução'
+                  : `reduz ${tipo.reducaoCreditoPercent}%`}
+              </p>
+            </button>
+          );
+        })}
+      </div>
+      <p className="text-[11px] mt-2" style={{ color: 'rgba(160,160,160,0.62)' }}>
+        {selecionado.descricao}
+      </p>
+    </div>
   );
 }
 

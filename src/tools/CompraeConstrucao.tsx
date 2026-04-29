@@ -29,6 +29,7 @@ export default function CompraeConstrucao({ onBack }: Props) {
     prazoTotal: 220,
     taxaAdm: 0.23,
     mesContemplacao: 30,
+    tipoSorteio: 'comum',
     seguroMensalPercent: 0.000555,
     mesesObra: 12,
     valorVendaMercado: 1700000,
@@ -37,7 +38,7 @@ export default function CompraeConstrucao({ onBack }: Props) {
   });
 
   const r = useMemo(() => calculate(data), [data]);
-  const set = (key: keyof SimData) => (v: number) => setData((d) => ({ ...d, [key]: v }));
+  const set = <K extends keyof SimData>(key: K) => (v: SimData[K]) => setData((d) => ({ ...d, [key]: v }));
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg-black)' }}>
@@ -123,7 +124,7 @@ export default function CompraeConstrucao({ onBack }: Props) {
 
 /* ── Steps ── */
 
-function Step1({ data, set, r }: { data: SimData; set: (k: keyof SimData) => (v: number) => void; r: ReturnType<typeof calculate> }) {
+function Step1({ data, set, r }: { data: SimData; set: <K extends keyof SimData>(k: K) => (v: SimData[K]) => void; r: ReturnType<typeof calculate> }) {
   return (
     <div className="space-y-8">
       <StepHeader step={1} totalSteps={TOTAL_STEPS} title="Definição do Projeto" subtitle="Informe os valores do terreno e da construção para calcular o crédito necessário." />
@@ -172,7 +173,7 @@ function Step2({ data, r }: { data: SimData; r: ReturnType<typeof calculate> }) 
   );
 }
 
-function Step3({ data, set, r }: { data: SimData; set: (k: keyof SimData) => (v: number) => void; r: ReturnType<typeof calculate> }) {
+function Step3({ data, set, r }: { data: SimData; set: <K extends keyof SimData>(k: K) => (v: SimData[K]) => void; r: ReturnType<typeof calculate> }) {
   return (
     <div className="space-y-8">
       <StepHeader step={3} totalSteps={TOTAL_STEPS} title="Funil de Contemplação" subtitle="Selecione o mês estimado em que você será contemplado e veja o impacto nos cálculos." />
@@ -181,6 +182,8 @@ function Step3({ data, set, r }: { data: SimData; set: (k: keyof SimData) => (v:
         prazoTotal={data.prazoTotal}
         mesContemplacao={data.mesContemplacao}
         onChangeMes={set('mesContemplacao')}
+        tipoSorteio={data.tipoSorteio}
+        onChangeTipoSorteio={set('tipoSorteio')}
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -215,7 +218,7 @@ function Step3({ data, set, r }: { data: SimData; set: (k: keyof SimData) => (v:
   );
 }
 
-function Step4({ data, set, r }: { data: SimData; set: (k: keyof SimData) => (v: number) => void; r: ReturnType<typeof calculate> }) {
+function Step4({ data, set, r }: { data: SimData; set: <K extends keyof SimData>(k: K) => (v: SimData[K]) => void; r: ReturnType<typeof calculate> }) {
   return (
     <div className="space-y-8">
       <StepHeader step={4} totalSteps={TOTAL_STEPS} title="Período da Obra" subtitle="Defina o prazo de construção e veja o impacto no saldo devedor ao final da obra." />
@@ -281,7 +284,7 @@ function Step5({ data, r }: { data: SimData; r: ReturnType<typeof calculate> }) 
   );
 }
 
-function Step6({ data, set, r }: { data: SimData; set: (k: keyof SimData) => (v: number) => void; r: ReturnType<typeof calculate> }) {
+function Step6({ data, set, r }: { data: SimData; set: <K extends keyof SimData>(k: K) => (v: SimData[K]) => void; r: ReturnType<typeof calculate> }) {
   return (
     <div className="space-y-6">
       <StepHeader step={6} totalSteps={TOTAL_STEPS} title="Consórcio vs. Banco" subtitle="Compare parcela mensal e prazo entre as duas modalidades." />
@@ -381,7 +384,7 @@ function Step6({ data, set, r }: { data: SimData; set: (k: keyof SimData) => (v:
   );
 }
 
-function Step7({ data, set, r }: { data: SimData; set: (k: keyof SimData) => (v: number) => void; r: ReturnType<typeof calculate> }) {
+function Step7({ data, set, r }: { data: SimData; set: <K extends keyof SimData>(k: K) => (v: SimData[K]) => void; r: ReturnType<typeof calculate> }) {
   const roi = ((r.lucroTotal / r.totalDesembolsado) * 100).toFixed(0);
   const isPositive = r.lucroTotal >= 0;
 
@@ -478,7 +481,7 @@ function Step7({ data, set, r }: { data: SimData; set: (k: keyof SimData) => (v:
   );
 }
 
-function Step8({ data, set, r }: { data: SimData; set: (k: keyof SimData) => (v: number) => void; r: ReturnType<typeof calculate> }) {
+function Step8({ data, set, r }: { data: SimData; set: <K extends keyof SimData>(k: K) => (v: SimData[K]) => void; r: ReturnType<typeof calculate> }) {
   const isPositive = r.rentabilidadeMensal >= 0;
   const rentabilidadeAnual = Math.pow(1 + r.rentabilidadeMensal / 100, 12) - 1;
 

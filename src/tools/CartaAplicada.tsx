@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { ChevronLeft, Home, Car, Shield, TrendingUp } from 'lucide-react';
 import { calculateCartaAplicada, fmt, type CartaAplicadaData } from '../lib/calculations';
 import BRLInput from '../components/BRLInput';
-import { Label, AnimatedValue, ToggleRow } from '../components/shared';
+import { Label, AnimatedValue, ToggleRow, TipoSorteioSelect } from '../components/shared';
 import { useConsorcioInputData } from '../hooks/useConsorcioInputData';
 import ShareButton from '../components/ShareButton';
 import { buildCartaAplicadaMsg } from '../lib/whatsapp';
@@ -20,6 +20,7 @@ export default function CartaAplicada({ onBack }: Props) {
       valorCredito: 500000,
       prazoTotal: 220,
       mesContemplacao: 24,
+      tipoSorteio: 'comum',
       selicAnual: 10.5,
       paymentMode: 'meia',
       comSeguro: false,
@@ -197,7 +198,7 @@ export default function CartaAplicada({ onBack }: Props) {
 
             <div>
               <div className="flex justify-between items-center mb-2">
-                <Label>Mês de Contemplação</Label>
+                <Label>Mês do Sorteio</Label>
                 <span className="text-sm font-black" style={{ color: 'var(--gold)', fontFamily: 'Montserrat' }}>
                   Mês {data.mesContemplacao}
                 </span>
@@ -248,6 +249,11 @@ export default function CartaAplicada({ onBack }: Props) {
               </p>
             </div>
 
+            <TipoSorteioSelect
+              value={data.tipoSorteio}
+              onChange={set('tipoSorteio')}
+            />
+
           </div>
 
           {/* RIGHT — Results */}
@@ -278,7 +284,7 @@ export default function CartaAplicada({ onBack }: Props) {
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--text-secondary)' }}>
-                    Crédito na Contemplação
+                    Crédito no Sorteio
                   </p>
                   <p className="text-xl font-black" style={{ fontFamily: 'Montserrat', color: 'var(--gold)' }}>
                     <AnimatedValue value={fmt(r.creditoNaContemplacao)} />
