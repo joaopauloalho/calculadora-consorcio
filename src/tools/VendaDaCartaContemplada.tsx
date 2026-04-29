@@ -9,6 +9,8 @@ import {
 import { calculateVendaCarta, fmt, type VendaCartaData } from '../lib/calculations';
 import FunilContemplacao from '../components/FunilContemplacao';
 import { Label, StatCard, GoldInput, ProgressDots, StepHeader, slideVariants } from '../components/shared';
+import ShareButton from '../components/ShareButton';
+import { buildVendaCartaMsg } from '../lib/whatsapp';
 
 const TOTAL_STEPS = 4;
 
@@ -309,6 +311,7 @@ function Step4({ data, set, r }: { data: VendaCartaData; set: SetFn; r: Results 
           </span>
         </div>
       </motion.div>
+      <ShareButton message={buildVendaCartaMsg(data, r)} />
     </div>
   );
 }
