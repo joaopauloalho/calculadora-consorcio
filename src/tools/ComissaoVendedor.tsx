@@ -1,5 +1,14 @@
 import { useMemo } from 'react';
-import { Calculator, ChevronLeft, Goal, Percent, ReceiptText } from 'lucide-react';
+import type { ReactNode } from 'react';
+import {
+  CalendarCheck,
+  Calculator,
+  ChevronLeft,
+  Goal,
+  Handshake,
+  ReceiptText,
+  Trophy,
+} from 'lucide-react';
 import BRLInput from '../components/BRLInput';
 import { Label } from '../components/shared';
 import {
@@ -22,12 +31,34 @@ function ResultBox({ label, value, accent }: { label: string; value: string; acc
   );
 }
 
+function CommissionStep({
+  icon,
+  label,
+  detail,
+  value,
+}: {
+  icon: ReactNode;
+  label: string;
+  detail: string;
+  value: string;
+}) {
+  return (
+    <div className="p-5 rounded-2xl border flex items-start gap-4" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+      <span className="w-11 h-11 shrink-0 rounded-xl flex items-center justify-center" style={{ background: 'rgba(204,51,102,0.14)', color: 'var(--alert)' }}>
+        {icon}
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--text-secondary)' }}>{label}</p>
+        <p className="text-sm font-semibold mb-2" style={{ color: 'var(--text-secondary)' }}>{detail}</p>
+        <p className="text-2xl font-black text-white" style={{ fontFamily: 'Montserrat' }}>{value}</p>
+      </div>
+    </div>
+  );
+}
+
 export default function ComissaoVendedor({ onBack }: Props) {
   const [data, setData] = usePersistedState<ComissaoData>('prestige:comissao:data', {
     valorCredito: 500000,
-    percentComissao: 1,
-    numeroParcelas: 1,
-    descontoPercent: 30,
     meta: 0,
   });
 
@@ -52,48 +83,33 @@ export default function ComissaoVendedor({ onBack }: Props) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
           <div className="space-y-6">
             <div>
-              <Label>Valor do Crédito (R$)</Label>
+              <Label>Valor do crédito (R$)</Label>
               <BRLInput value={data.valorCredito} onChange={set('valorCredito')} />
             </div>
 
             <div className="p-5 rounded-2xl border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-              <div className="flex justify-between items-center mb-3">
-                <Label>% Comissão da Administradora</Label>
-                <span className="text-sm font-black" style={{ color: 'var(--alert)' }}>{data.percentComissao.toFixed(1)}%</span>
+              <div className="flex justify-between items-center gap-4 mb-4">
+                <Label>Regra de comissão do consultor</Label>
+                <span className="text-sm font-black" style={{ color: 'var(--alert)' }}>{r.percentTotal.toFixed(1)}%</span>
               </div>
-              <input type="range" min={0.5} max={3} step={0.1} value={data.percentComissao} onChange={(e) => set('percentComissao')(Number(e.target.value))} className="w-full" />
+              <div className="space-y-3 text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>
+                <div className="flex justify-between gap-4">
+                  <span>0,4% no contrato</span>
+                  <strong className="text-white">{fmt(r.contrato)}</strong>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <span>0,4% em 4 parcelas após a 3ª paga</span>
+                  <strong className="text-white">4x {fmt(r.aposTerceiraParcelaValor)}</strong>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <span>0,8% na contemplação</span>
+                  <strong className="text-white">{fmt(r.contemplacao)}</strong>
+                </div>
+              </div>
             </div>
 
             <div>
-              <Label>Pagamento</Label>
-              <div className="grid grid-cols-4 gap-2">
-                {[1, 2, 3, 4].map((n) => (
-                  <button
-                    key={n}
-                    onClick={() => set('numeroParcelas')(n)}
-                    className="min-h-[56px] rounded-xl border font-black text-sm"
-                    style={{
-                      background: data.numeroParcelas === n ? 'rgba(204,51,102,0.16)' : 'var(--bg-card)',
-                      borderColor: data.numeroParcelas === n ? 'var(--alert)' : 'var(--border)',
-                      color: data.numeroParcelas === n ? 'var(--alert)' : 'white',
-                    }}
-                  >
-                    {n}x
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="p-5 rounded-2xl border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
-              <div className="flex justify-between items-center mb-3">
-                <Label>Desconto impostos/ajustes</Label>
-                <span className="text-sm font-black" style={{ color: 'var(--alert)' }}>{data.descontoPercent}%</span>
-              </div>
-              <input type="range" min={0} max={50} step={1} value={data.descontoPercent} onChange={(e) => set('descontoPercent')(Number(e.target.value))} className="w-full" />
-            </div>
-
-            <div>
-              <Label>Meta mensal do vendedor (opcional)</Label>
+              <Label>Meta mensal do consultor (opcional)</Label>
               <BRLInput value={data.meta} onChange={set('meta')} />
             </div>
           </div>
@@ -103,18 +119,22 @@ export default function ComissaoVendedor({ onBack }: Props) {
               <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-5" style={{ background: 'rgba(204,51,102,0.16)', color: 'var(--alert)' }}>
                 <ReceiptText size={24} />
               </div>
-              <p className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: 'var(--alert)' }}>Comissão líquida estimada</p>
-              <p className="text-5xl font-black text-white" style={{ fontFamily: 'Montserrat' }}>{fmt(r.comissaoLiquida)}</p>
+              <p className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: 'var(--alert)' }}>Comissão total do consultor</p>
+              <p className="text-5xl font-black text-white" style={{ fontFamily: 'Montserrat' }}>{fmt(r.comissaoTotal)}</p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <ResultBox label="Comissão bruta" value={fmt(r.comissaoBruta)} />
-              <ResultBox label="Parcela recebida" value={fmt(r.parcelaRecebida)} accent />
+              <ResultBox label="Total após 3ª paga" value={fmt(r.aposTerceiraParcelaTotal)} />
+              <ResultBox label="Cada parcela" value={fmt(r.aposTerceiraParcelaValor)} accent />
             </div>
+
+            <CommissionStep icon={<Handshake size={20} />} label="Contrato" detail="0,4% liberado no fechamento" value={fmt(r.contrato)} />
+            <CommissionStep icon={<CalendarCheck size={20} />} label="Após a terceira paga" detail="0,4% dividido em 4 pagamentos" value={`4x ${fmt(r.aposTerceiraParcelaValor)}`} />
+            <CommissionStep icon={<Trophy size={20} />} label="Contemplação" detail="0,8% quando o cliente for contemplado" value={fmt(r.contemplacao)} />
 
             <div className="p-5 rounded-2xl border flex items-center gap-4" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
               <span className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ background: 'rgba(204,51,102,0.14)', color: 'var(--alert)' }}>
-                {r.vendasParaMeta ? <Goal size={20} /> : <Percent size={20} />}
+                {r.vendasParaMeta ? <Goal size={20} /> : <Calculator size={20} />}
               </span>
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--text-secondary)' }}>
@@ -128,7 +148,7 @@ export default function ComissaoVendedor({ onBack }: Props) {
 
             <div className="p-4 rounded-xl border text-xs" style={{ background: 'rgba(204,51,102,0.06)', borderColor: 'rgba(204,51,102,0.2)', color: 'var(--text-secondary)' }}>
               <Calculator size={13} className="inline mr-1.5" style={{ color: 'var(--alert)' }} />
-              Cálculo interno estimativo: comissão bruta menos desconto configurado, dividida pelo número de parcelas.
+              Cálculo para venda consultiva: 0,4% no contrato, 0,4% em 4 parcelas após a terceira paga e 0,8% na contemplação.
             </div>
           </div>
         </div>

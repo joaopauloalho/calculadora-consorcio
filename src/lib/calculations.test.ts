@@ -8,6 +8,7 @@ import {
   calcularCascata,
   calculateCartaAplicada,
   calculateQuickCalc,
+  calculateComissao,
   fmt,
   INCC_MEDIO_HISTORICO,
 } from './calculations';
@@ -427,5 +428,25 @@ describe('fmt', () => {
   it('formata número negativo', () => {
     const s = fmt(-500);
     expect(s).toContain('-');
+  });
+});
+
+describe('calculateComissao', () => {
+  it('calcula a regra fixa do consultor', () => {
+    const r = calculateComissao({ valorCredito: 1_000_000, meta: 0 });
+
+    expect(r.contrato).toBe(4_000);
+    expect(r.aposTerceiraParcelaTotal).toBe(4_000);
+    expect(r.aposTerceiraParcelaValor).toBe(1_000);
+    expect(r.contemplacao).toBe(8_000);
+    expect(r.comissaoTotal).toBe(16_000);
+    expect(r.percentTotal).toBe(1.6);
+  });
+
+  it('usa a comissão total para calcular vendas para meta', () => {
+    const r = calculateComissao({ valorCredito: 500_000, meta: 20_000 });
+
+    expect(r.comissaoTotal).toBe(8_000);
+    expect(r.vendasParaMeta).toBe(3);
   });
 });

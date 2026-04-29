@@ -559,29 +559,39 @@ export function calculateFinanciamento(data: FinanciamentoData): FinanciamentoRe
 
 export interface ComissaoData {
   valorCredito: number;
-  percentComissao: number;
-  numeroParcelas: number;
-  descontoPercent: number;
   meta: number;
 }
 
 export interface ComissaoResults {
-  comissaoBruta: number;
-  comissaoLiquida: number;
-  parcelaRecebida: number;
+  contrato: number;
+  aposTerceiraParcelaTotal: number;
+  aposTerceiraParcelaValor: number;
+  contemplacao: number;
+  comissaoTotal: number;
+  percentTotal: number;
   vendasParaMeta: number | null;
 }
 
 export function calculateComissao(data: ComissaoData): ComissaoResults {
-  const numeroParcelas = Math.max(1, data.numeroParcelas);
-  const comissaoBruta = data.valorCredito * (data.percentComissao / 100);
-  const comissaoLiquida = comissaoBruta * (1 - data.descontoPercent / 100);
-  const parcelaRecebida = comissaoLiquida / numeroParcelas;
-  const vendasParaMeta = data.meta > 0 && comissaoLiquida > 0
-    ? Math.ceil(data.meta / comissaoLiquida)
+  const contrato = data.valorCredito * 0.004;
+  const aposTerceiraParcelaTotal = data.valorCredito * 0.004;
+  const aposTerceiraParcelaValor = aposTerceiraParcelaTotal / 4;
+  const contemplacao = data.valorCredito * 0.008;
+  const comissaoTotal = contrato + aposTerceiraParcelaTotal + contemplacao;
+  const percentTotal = 1.6;
+  const vendasParaMeta = data.meta > 0 && comissaoTotal > 0
+    ? Math.ceil(data.meta / comissaoTotal)
     : null;
 
-  return { comissaoBruta, comissaoLiquida, parcelaRecebida, vendasParaMeta };
+  return {
+    contrato,
+    aposTerceiraParcelaTotal,
+    aposTerceiraParcelaValor,
+    contemplacao,
+    comissaoTotal,
+    percentTotal,
+    vendasParaMeta,
+  };
 }
 
 export function calculateQuickCalc(data: QuickCalcData): QuickCalcResults {
