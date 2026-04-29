@@ -10,6 +10,8 @@ import {
 import BRLInput from '../components/BRLInput';
 import { Label, AnimatedValue, ToggleRow } from '../components/shared';
 import { useConsorcioInputData } from '../hooks/useConsorcioInputData';
+import ShareButton from '../components/ShareButton';
+import { buildQuickCalcMsg } from '../lib/whatsapp';
 
 interface Props {
   onBack: () => void;
@@ -436,6 +438,8 @@ export default function QuickCalc({ onBack }: Props) {
               )}
             </AnimatePresence>
           </div>
+
+          <ShareButton message={buildQuickCalcMsg(data, r)} />
         </div>
       </div>
     </div>
