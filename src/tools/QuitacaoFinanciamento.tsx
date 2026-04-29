@@ -1,5 +1,6 @@
 ﻿import { useState, useMemo } from 'react';
 import { useCalculatorNavigation } from '../hooks/useCalculatorNavigation';
+import { usePersistedState } from '../hooks/usePersistedState';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft, ArrowRight, ChevronLeft, RefreshCw, TrendingDown,
@@ -18,7 +19,7 @@ interface Props { onBack: () => void; }
 
 export default function QuitacaoFinanciamento({ onBack }: Props) {
   const { step, dir, goNext, goPrev, setStep } = useCalculatorNavigation(TOTAL_STEPS);
-  const [data, setData] = useState<QuitacaoData>({
+  const [data, setData] = usePersistedState<QuitacaoData>('prestige:quitacao:data', {
     saldoDevedorBanco: 400000,
     parcelaBanco: 4500,
     prazoRestanteBanco: 180,

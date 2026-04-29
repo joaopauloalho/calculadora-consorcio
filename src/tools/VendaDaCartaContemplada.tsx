@@ -1,5 +1,6 @@
 ﻿import { useState, useMemo } from 'react';
 import { useCalculatorNavigation } from '../hooks/useCalculatorNavigation';
+import { usePersistedState } from '../hooks/usePersistedState';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft, ArrowRight, Repeat2, ChevronLeft,
@@ -20,7 +21,7 @@ interface Props {
 
 export default function VendaDaCartaContemplada({ onBack }: Props) {
   const { step, dir, goNext, goPrev, setStep } = useCalculatorNavigation(TOTAL_STEPS);
-  const [data, setData] = useState<VendaCartaData>({
+  const [data, setData] = usePersistedState<VendaCartaData>('prestige:venda:data', {
     valorCredito: 1000000,
     valorParcela: 3000,
     taxaAdm: 0.23,

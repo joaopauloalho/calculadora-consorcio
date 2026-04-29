@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
-import { Zap, Building2, TrendingUp, ArrowRight, Gavel } from 'lucide-react';
+import { Zap, Building2, TrendingUp, ArrowRight, Gavel, HelpCircle, Calculator } from 'lucide-react';
 
-export type Purpose = 'quickcalc' | 'lance' | 'acquisition' | 'return';
+export type Purpose = 'quickcalc' | 'lance' | 'acquisition' | 'return' | 'diagnostico' | 'comissao';
 
 interface Props {
   onSelect: (purpose: Purpose) => void;
@@ -13,6 +13,18 @@ const card = {
 };
 
 const cards = [
+  {
+    id: 'diagnostico' as Purpose,
+    iconEl: <HelpCircle size={24} style={{ color: '#5EB9AA' }} />,
+    iconBg: 'rgba(94,185,170,0.2)',
+    title: 'Diagnóstico\nRápido',
+    description:
+      'Responda 3 perguntas e saiba qual ferramenta usar na sua situação.',
+    cta: 'Iniciar diagnóstico',
+    ctaColor: '#5EB9AA',
+    glowColor: 'rgba(94,185,170,0.22)',
+    borderHover: 'rgba(94,185,170,0.4)',
+  },
   {
     id: 'quickcalc' as Purpose,
     iconEl: <Zap size={24} style={{ color: '#031715' }} />,
@@ -191,6 +203,17 @@ export default function PurposeScreen({ onSelect }: Props) {
           </motion.button>
         ))}
       </motion.div>
+
+      <motion.button
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.9, duration: 0.5 }}
+        onClick={() => onSelect('comissao')}
+        className="mt-8 text-[11px] font-semibold flex items-center gap-1.5 transition-opacity hover:opacity-70"
+        style={{ color: 'rgba(247,248,253,0.25)' }}
+      >
+        <Calculator size={11} /> Minha comissão
+      </motion.button>
 
       {/* Footer disclaimer */}
       <motion.p

@@ -1,11 +1,12 @@
 import { fmt } from './calculations';
 import type {
-  QuickCalcData, QuickCalcResults,
-  SimData, SimResults,
-  VendaCartaData, VendaCartaResults,
   AluguelData, AluguelResults,
   CartaAplicadaData, CartaAplicadaResults,
+  FinanciamentoResults,
+  QuickCalcData, QuickCalcResults,
   QuitacaoData, QuitacaoResults,
+  SimData, SimResults,
+  VendaCartaData, VendaCartaResults,
 } from './calculations';
 
 export function openWhatsApp(message: string): void {
@@ -19,21 +20,39 @@ export function openWhatsApp(message: string): void {
 const SEP = '━━━━━━━━━━━━━━';
 const FOOTER = '_Simulação Consórcio_';
 
-export function buildQuickCalcMsg(data: QuickCalcData, r: QuickCalcResults): string {
+export function buildQuickCalcMsg(
+  data: QuickCalcData,
+  r: QuickCalcResults,
+  lance?: { totalRecursos: number; percentLance: number },
+  financiamento?: FinanciamentoResults,
+): string {
   const tipo = data.assetType === 'imovel' ? 'Imóvel' : 'Veículo';
-  return [
-    `*📊 Simulação de Consórcio — ${tipo}*`,
+  const lines = [
+    `*Simulação de Consórcio - ${tipo}*`,
     SEP,
     `Crédito: *${fmt(data.valorCredito)}* | Prazo: *${data.prazoTotal} meses*`,
     `Parcela: *${fmt(r.parcelaEfetivaPreContemp)}/mês*`,
     `Total a pagar: *${fmt(r.totalComTaxa)}*`,
     `Crédito na contemplação (mês ${data.mesContemplacao}): *${fmt(r.creditoAtualizado)}*`,
-    SEP,
-    FOOTER,
-  ].join('\n');
+  ];
+
+  if (lance) {
+    lines.push(`Recursos p/ lance: *${fmt(lance.totalRecursos)}* (~*${lance.percentLance.toFixed(1)}%*)`);
+  }
+
+  if (financiamento) {
+    lines.push(
+      `Financiamento: *${fmt(financiamento.totalPago)} total* (${fmt(financiamento.totalJuros)} de juros)`,
+      `Consórcio: *${fmt(r.totalComTaxa)} total*`,
+      `Economia: *${fmt(financiamento.totalPago - r.totalComTaxa)}*`,
+    );
+  }
+
+  lines.push(SEP, FOOTER);
+  return lines.join('\n');
 }
 
-export function buildLanceMsg(params: {
+export interface LanceMsgData {
   valorCredito: number;
   prazoTotal: number;
   tipoLance: 'livre' | 'embutido';
@@ -42,10 +61,12 @@ export function buildLanceMsg(params: {
   creditoLiquido: number;
   saldoDevedor: number;
   parcela: number;
-}): string {
+}
+
+export function buildLanceMsg(params: LanceMsgData): string {
   const tipo = params.tipoLance === 'livre' ? 'Lance Livre' : 'Lance Embutido';
   return [
-    `*🎯 Calculadora de Lance*`,
+    `*Calculadora de Lance*`,
     SEP,
     `Crédito: *${fmt(params.valorCredito)}* | Prazo: *${params.prazoTotal} meses*`,
     `Tipo: *${tipo}* | Lance: *${params.lanceTotalPercent.toFixed(0)}%* (*${fmt(params.lanceTotal)}*)`,
@@ -57,9 +78,23 @@ export function buildLanceMsg(params: {
   ].join('\n');
 }
 
+export function buildLanceComparacaoMsg(dataA: LanceMsgData, dataB: LanceMsgData): string {
+  return [
+    `*Comparação de Lance*`,
+    SEP,
+    `           CENÁRIO A    CENÁRIO B`,
+    `Lance:     *${dataA.lanceTotalPercent.toFixed(0)}%*        *${dataB.lanceTotalPercent.toFixed(0)}%*`,
+    `Líquido:   *${fmt(dataA.creditoLiquido)}*     *${fmt(dataB.creditoLiquido)}*`,
+    `Saldo:     *${fmt(dataA.saldoDevedor)}*     *${fmt(dataB.saldoDevedor)}*`,
+    `Parcela:   *${fmt(dataA.parcela)}*    *${fmt(dataB.parcela)}*`,
+    SEP,
+    FOOTER,
+  ].join('\n');
+}
+
 export function buildCompraConstrucaoMsg(data: SimData, r: SimResults): string {
   return [
-    `*🏗️ Compra e Construção*`,
+    `*Compra e Construção*`,
     SEP,
     `Crédito: *${fmt(r.totalCredito)}* | Prazo: *${data.prazoTotal} meses*`,
     `Investido até contemplação: *${fmt(r.valorInvestidoAteContemplacao)}*`,
@@ -72,7 +107,7 @@ export function buildCompraConstrucaoMsg(data: SimData, r: SimResults): string {
 
 export function buildVendaCartaMsg(data: VendaCartaData, r: VendaCartaResults): string {
   return [
-    `*🔄 Giro de Carta Contemplada*`,
+    `*Giro de Carta Contemplada*`,
     SEP,
     `Crédito: *${fmt(data.valorCredito)}* | Ágio: *${data.agioPercent}%*`,
     `Desembolso total: *${fmt(r.totalDesembolsado)}*`,
@@ -85,7 +120,7 @@ export function buildVendaCartaMsg(data: VendaCartaData, r: VendaCartaResults): 
 
 export function buildAluguelMsg(data: AluguelData, r: AluguelResults): string {
   return [
-    `*🏠 Aluguel com Consórcio*`,
+    `*Aluguel com Consórcio*`,
     SEP,
     `Crédito: *${fmt(data.valorCredito)}* | Prazo: *${data.prazoTotal} meses*`,
     `Parcela (meia): *${fmt(r.meiaParcela)}/mês*`,
@@ -100,7 +135,7 @@ export function buildAluguelMsg(data: AluguelData, r: AluguelResults): string {
 export function buildCartaAplicadaMsg(data: CartaAplicadaData, r: CartaAplicadaResults): string {
   const tipo = data.assetType === 'imovel' ? 'Imóvel' : 'Veículo';
   return [
-    `*💰 Carta Aplicada no CDI — ${tipo}*`,
+    `*Carta Aplicada no CDI - ${tipo}*`,
     SEP,
     `Crédito: *${fmt(data.valorCredito)}* | Prazo: *${data.prazoTotal} meses*`,
     `Parcela efetiva: *${fmt(r.parcelaEfetivaPreContemp)}/mês*`,
@@ -114,7 +149,7 @@ export function buildCartaAplicadaMsg(data: CartaAplicadaData, r: CartaAplicadaR
 
 export function buildQuitacaoMsg(_data: QuitacaoData, r: QuitacaoResults): string {
   return [
-    `*🏦 Quitação de Financiamento*`,
+    `*Quitação de Financiamento*`,
     SEP,
     `Custo total no banco: *${fmt(r.custoTotalBanco)}*`,
     `Custo total no consórcio: *${fmt(r.custoTotalConsorcio)}*`,
@@ -139,17 +174,19 @@ export function buildSimuladorLanceMsg(params: {
   const elegiveis = params.elegiveis.filter((e) => e.elegivel);
   const melhor = elegiveis.length > 0 ? elegiveis[elegiveis.length - 1] : null;
   const linhas = [
-    `*🏆 Simulador de Lance Ello*`,
+    `*Simulador de Lance Ello*`,
     SEP,
     `Crédito: *${fmt(params.valorCredito)}* | Meses em dia: *${params.mesesEmDia}*`,
   ];
+
   if (melhor) {
     linhas.push(`Melhor lance disponível: *${melhor.nome}*`);
     linhas.push(`Lance: *${melhor.percentLance}%* (*${fmt(melhor.valorLance)}*)`);
     linhas.push(`Crédito efetivo: *${fmt(melhor.creditoEfetivo)}*`);
   } else {
-    linhas.push(`Nenhum lance disponível com os meses em dia informados.`);
+    linhas.push('Nenhum lance disponível com os meses em dia informados.');
   }
+
   linhas.push(SEP, FOOTER);
   return linhas.join('\n');
 }

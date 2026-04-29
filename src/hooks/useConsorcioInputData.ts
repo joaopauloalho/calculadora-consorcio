@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { IMOVEL_PRAZOS, VEICULO_PRAZOS } from '../lib/constants';
 
 type AssetType = 'imovel' | 'veiculo';
@@ -16,9 +16,27 @@ type ExtraUpdates<T> = (prazo: number, newMesContemp: number, prev: T) => Partia
 export function useConsorcioInputData<T extends BaseConsorcioData>(
   initialData: T,
   extraUpdates?: ExtraUpdates<T>,
+  persistKey?: string,
 ) {
-  const [data, setData] = useState<T>(initialData);
+  const [data, setData] = useState<T>(() => {
+    if (!persistKey || typeof window === 'undefined') return initialData;
+    try {
+      const stored = window.localStorage.getItem(persistKey);
+      return stored ? (JSON.parse(stored) as T) : initialData;
+    } catch {
+      return initialData;
+    }
+  });
   const [customPrazoStr, setCustomPrazoStr] = useState('');
+
+  useEffect(() => {
+    if (!persistKey || typeof window === 'undefined') return;
+    try {
+      window.localStorage.setItem(persistKey, JSON.stringify(data));
+    } catch {
+      // Storage can be blocked or full.
+    }
+  }, [data, persistKey]);
 
   const set = <K extends keyof T>(key: K) =>
     (v: T[K]) => setData((d) => ({ ...d, [key]: v } as T));

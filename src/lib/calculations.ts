@@ -482,6 +482,74 @@ export interface QuickCalcResults {
   rentabilidadeMensal: number;
 }
 
+export interface FinanciamentoData {
+  valorBem: number;
+  entrada: number;
+  taxaJurosMensal: number;
+  prazoMeses: number;
+}
+
+export interface FinanciamentoResults {
+  valorFinanciado: number;
+  parcelaInicial: number;
+  parcelaFinal: number;
+  parcelaMedia: number;
+  totalPago: number;
+  totalJuros: number;
+  custoEfetivoAnual: number;
+}
+
+export function calculateFinanciamento(data: FinanciamentoData): FinanciamentoResults {
+  const entrada = Math.min(Math.max(0, data.entrada), data.valorBem);
+  const valorFinanciado = Math.max(0, data.valorBem - entrada);
+  const prazoMeses = Math.max(1, data.prazoMeses);
+  const taxaJurosMensal = Math.max(0, data.taxaJurosMensal);
+  const amortizacao = valorFinanciado / prazoMeses;
+  const parcelaInicial = amortizacao + valorFinanciado * taxaJurosMensal;
+  const parcelaFinal = amortizacao + amortizacao * taxaJurosMensal;
+  const parcelaMedia = (parcelaInicial + parcelaFinal) / 2;
+  const totalPago = parcelaMedia * prazoMeses + entrada;
+  const totalJuros = Math.max(0, totalPago - data.valorBem);
+  const custoEfetivoAnual = (Math.pow(1 + taxaJurosMensal, 12) - 1) * 100;
+
+  return {
+    valorFinanciado,
+    parcelaInicial,
+    parcelaFinal,
+    parcelaMedia,
+    totalPago,
+    totalJuros,
+    custoEfetivoAnual,
+  };
+}
+
+export interface ComissaoData {
+  valorCredito: number;
+  percentComissao: number;
+  numeroParcelas: number;
+  descontoPercent: number;
+  meta: number;
+}
+
+export interface ComissaoResults {
+  comissaoBruta: number;
+  comissaoLiquida: number;
+  parcelaRecebida: number;
+  vendasParaMeta: number | null;
+}
+
+export function calculateComissao(data: ComissaoData): ComissaoResults {
+  const numeroParcelas = Math.max(1, data.numeroParcelas);
+  const comissaoBruta = data.valorCredito * (data.percentComissao / 100);
+  const comissaoLiquida = comissaoBruta * (1 - data.descontoPercent / 100);
+  const parcelaRecebida = comissaoLiquida / numeroParcelas;
+  const vendasParaMeta = data.meta > 0 && comissaoLiquida > 0
+    ? Math.ceil(data.meta / comissaoLiquida)
+    : null;
+
+  return { comissaoBruta, comissaoLiquida, parcelaRecebida, vendasParaMeta };
+}
+
 export function calculateQuickCalc(data: QuickCalcData): QuickCalcResults {
   const taxaAdm =
     data.assetType === 'imovel' ? 0.23 : data.prazoTotal <= 48 ? 0.085 : 0.16;

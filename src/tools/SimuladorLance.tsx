@@ -5,6 +5,7 @@ import BRLInput from '../components/BRLInput';
 import { Label } from '../components/shared';
 import ShareButton from '../components/ShareButton';
 import { buildSimuladorLanceMsg } from '../lib/whatsapp';
+import { usePersistedState } from '../hooks/usePersistedState';
 
 interface Props {
   onBack: () => void;
@@ -59,8 +60,8 @@ const TIPOS_LANCE = [
 ];
 
 export default function SimuladorLance({ onBack }: Props) {
-  const [valorCredito, setValorCredito] = useState(1000000);
-  const [mesesEmDia, setMesesEmDia] = useState(0);
+  const [valorCredito, setValorCredito] = usePersistedState('prestige:simulador:valorCredito', 1000000);
+  const [mesesEmDia, setMesesEmDia] = usePersistedState('prestige:simulador:mesesEmDia', 0);
 
   const resultados = TIPOS_LANCE.map((tipo) => {
     const elegivel = mesesEmDia >= tipo.carencia;

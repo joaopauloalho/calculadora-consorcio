@@ -1,10 +1,10 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  ChevronLeft, Zap, Home, Car, Shield, TrendingUp,
+  ChevronLeft, Zap, Home, Car, Shield, TrendingUp, Wallet, Scale,
 } from 'lucide-react';
 import {
-  calculateQuickCalc, fmt,
+  calculateFinanciamento, calculateQuickCalc, fmt,
   type QuickCalcData,
 } from '../lib/calculations';
 import BRLInput from '../components/BRLInput';
@@ -73,13 +73,33 @@ export default function QuickCalc({ onBack }: Props) {
     paymentMode: 'meia',
     mesContemplacao: 24,
     percentAgio: 20,
-  });
+  }, undefined, 'prestige:quickcalc:data');
   const [venderComLucro, setVenderComLucro] = useState(false);
+  const [temPoupanca, setTemPoupanca] = useState(false);
+  const [valorPoupanca, setValorPoupanca] = useState(0);
+  const [temCarro, setTemCarro] = useState(false);
+  const [valorCarro, setValorCarro] = useState(0);
+  const [compararFinanciamento, setCompararFinanciamento] = useState(false);
+  const [entradaFinanciamento, setEntradaFinanciamento] = useState(0);
 
   const r = useMemo(() => calculateQuickCalc(data), [data]);
+  const financiamento = useMemo(() => calculateFinanciamento({
+    valorBem: data.valorCredito,
+    entrada: entradaFinanciamento,
+    taxaJurosMensal: 0.0112,
+    prazoMeses: data.assetType === 'imovel' ? 360 : 60,
+  }), [data.assetType, data.valorCredito, entradaFinanciamento]);
   const parcelaAtualBase =
     data.paymentMode === 'meia' ? r.meiaParcela : r.parcelaCheiaOriginal;
   const isLucroPositive = r.lucroLiquido >= 0;
+  const totalRecursosProprios =
+    (temPoupanca ? valorPoupanca : 0) + (temCarro ? valorCarro : 0);
+  const percentLanceEstimado = r.creditoAtualizado > 0
+    ? (totalRecursosProprios / r.creditoAtualizado) * 100
+    : 0;
+  const creditoLiquidoEstimado = Math.max(0, r.creditoAtualizado - totalRecursosProprios);
+  const saldoDevedorEstimado = Math.max(0, r.saldoDevedorContemplacao - totalRecursosProprios);
+  const economiaNominal = financiamento.totalPago - r.totalComTaxa;
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg-black)' }}>
@@ -255,6 +275,48 @@ export default function QuickCalc({ onBack }: Props) {
               sub={`${(r.seguroPercent * 100).toFixed(4)}% s/ saldo devedor / mês`}
             />
 
+            <ToggleRow
+              active={temPoupanca}
+              onClick={() => setTemPoupanca(!temPoupanca)}
+              icon={<Wallet size={18} />}
+              title="Tenho Poupança"
+              sub="Usar como lance para contemplação antecipada"
+            />
+            <AnimatePresence>
+              {temPoupanca && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  style={{ overflow: 'hidden' }}
+                >
+                  <Label>Valor da Poupança (R$)</Label>
+                  <BRLInput value={valorPoupanca} onChange={setValorPoupanca} />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <ToggleRow
+              active={temCarro}
+              onClick={() => setTemCarro(!temCarro)}
+              icon={<Car size={18} />}
+              title="Tenho Carro para Vender"
+              sub="Usar o valor de venda como lance"
+            />
+            <AnimatePresence>
+              {temCarro && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  style={{ overflow: 'hidden' }}
+                >
+                  <Label>Valor do Carro (R$)</Label>
+                  <BRLInput value={valorCarro} onChange={setValorCarro} />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* Contemplação slider */}
             <div>
               <div className="flex justify-between items-center mb-2">
@@ -337,6 +399,30 @@ export default function QuickCalc({ onBack }: Props) {
               value={fmt(r.parcelaNova)}
               sub="Parcela cheia + seguro obrigatório"
             />
+
+            <AnimatePresence>
+              {totalRecursosProprios > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  style={{ overflow: 'hidden' }}
+                >
+                  <div
+                    className="p-5 rounded-2xl border space-y-3"
+                    style={{ background: 'rgba(37,211,102,0.06)', borderColor: 'rgba(37,211,102,0.2)' }}
+                  >
+                    <p className="text-xs font-black uppercase tracking-widest" style={{ color: '#25D366' }}>
+                      Estimativa de Lance
+                    </p>
+                    <MiniStat label="Recursos disponíveis" value={fmt(totalRecursosProprios)} />
+                    <MiniStat label="Lance estimado" value={`${percentLanceEstimado.toFixed(1)}% do crédito`} />
+                    <MiniStat label="Crédito líquido estimado" value={fmt(creditoLiquidoEstimado)} />
+                    <MiniStat label="Saldo devedor após lance" value={fmt(saldoDevedorEstimado)} />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             <div
               className="p-4 rounded-2xl border"
@@ -437,9 +523,72 @@ export default function QuickCalc({ onBack }: Props) {
                 </motion.div>
               )}
             </AnimatePresence>
+
+            <ToggleRow
+              active={compararFinanciamento}
+              onClick={() => setCompararFinanciamento(!compararFinanciamento)}
+              icon={<Scale size={18} />}
+              title="Comparar com Financiamento"
+              sub="Veja quanto custaria financiar o mesmo bem"
+            />
+            <AnimatePresence>
+              {compararFinanciamento && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  style={{ overflow: 'hidden' }}
+                >
+                  <div
+                    className="p-5 rounded-2xl border space-y-4"
+                    style={{ background: 'rgba(204,51,102,0.06)', borderColor: 'rgba(204,51,102,0.22)' }}
+                  >
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-widest" style={{ color: 'var(--alert)' }}>
+                        Financiamento Bancário
+                      </p>
+                      <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)' }}>
+                        Taxa referência: {financiamento.custoEfetivoAnual.toFixed(1)}% a.a. · SAC
+                      </p>
+                    </div>
+                    <div>
+                      <Label>Entrada (R$)</Label>
+                      <BRLInput value={entradaFinanciamento} onChange={setEntradaFinanciamento} />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <MiniStat label="Parcela inicial" value={`${fmt(financiamento.parcelaInicial)}/mês`} />
+                      <MiniStat label="Parcela final" value={`${fmt(financiamento.parcelaFinal)}/mês`} />
+                      <MiniStat label="Total pago" value={fmt(financiamento.totalPago)} />
+                      <MiniStat label="Total de juros" value={fmt(financiamento.totalJuros)} />
+                    </div>
+                    <div className="h-px" style={{ background: 'rgba(204,51,102,0.2)' }} />
+                    <div className="grid grid-cols-2 gap-3">
+                      <MiniStat label="Consórcio" value={fmt(r.totalComTaxa)} />
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-widest mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                          Economia
+                        </p>
+                        <p className="text-base font-black" style={{ fontFamily: 'Montserrat', color: economiaNominal >= 0 ? '#00C864' : 'var(--alert)' }}>
+                          {fmt(economiaNominal)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
-          <ShareButton message={buildQuickCalcMsg(data, r)} />
+          <ShareButton
+            message={buildQuickCalcMsg(
+              data,
+              r,
+              totalRecursosProprios > 0
+                ? { totalRecursos: totalRecursosProprios, percentLance: percentLanceEstimado }
+                : undefined,
+              compararFinanciamento ? financiamento : undefined,
+            )}
+          />
         </div>
       </div>
     </div>

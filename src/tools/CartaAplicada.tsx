@@ -28,6 +28,7 @@ export default function CartaAplicada({ onBack }: Props) {
     (prazo, newMesContemp, d) => ({
       mesAnalise: Math.min(d.mesAnalise, prazo - newMesContemp),
     }),
+    'prestige:carta:data',
   );
 
   const maxMesAnalise = Math.max(1, data.prazoTotal - data.mesContemplacao);

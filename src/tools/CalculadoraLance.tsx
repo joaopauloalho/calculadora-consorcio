@@ -1,12 +1,13 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useCalculatorNavigation } from '../hooks/useCalculatorNavigation';
+import { usePersistedState } from '../hooks/usePersistedState';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ArrowLeft, ArrowRight, Gavel, Info, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { ChevronLeft, ArrowLeft, ArrowRight, Gavel, Info, RefreshCw, CheckCircle2, X } from 'lucide-react';
 import { aplicarReajusteINCC, fmt, INCC_MEDIO_HISTORICO } from '../lib/calculations';
 import BRLInput from '../components/BRLInput';
 import { Label, StatCard, ProgressDots, StepHeader, slideVariants } from '../components/shared';
 import ShareButton from '../components/ShareButton';
-import { buildLanceMsg } from '../lib/whatsapp';
+import { buildLanceComparacaoMsg, buildLanceMsg } from '../lib/whatsapp';
 
 interface Props { onBack: () => void; }
 
@@ -67,7 +68,7 @@ const TOTAL_STEPS = 3;
 
 export default function CalculadoraLance({ onBack }: Props) {
   const { step, dir, goNext, goPrev, setStep } = useCalculatorNavigation(TOTAL_STEPS);
-  const [data, setData] = useState<Data>({
+  const [data, setData] = usePersistedState<Data>('prestige:lance:data', {
     valorCredito: 300000,
     prazoTotal: 180,
     taxaAdm: 23,
@@ -167,6 +168,17 @@ export default function CalculadoraLance({ onBack }: Props) {
 /* ── Steps ── */
 
 type R = ReturnType<typeof calcular>;
+
+const lanceMsgData = (data: Data, r: R) => ({
+  valorCredito: data.valorCredito,
+  prazoTotal: data.prazoTotal,
+  tipoLance: data.tipoLance,
+  lanceTotalPercent: r.lanceTotalPercent,
+  lanceTotal: r.lanceTotal,
+  creditoLiquido: r.creditoLiquido,
+  saldoDevedor: r.saldoDevedor,
+  parcela: r.parcela,
+});
 
 function Step1({ data, set, r }: { data: Data; set: <K extends keyof Data>(k: K) => (v: Data[K]) => void; r: R }) {
   const inccDiff = r.valorCreditoAtualizado - data.valorCredito;
@@ -496,6 +508,14 @@ function Step2({
 
 function Step3({ data, r }: { data: Data; r: R }) {
   const isEmbutido = data.tipoLance === 'embutido';
+  const [comparando, setComparando] = useState(false);
+  const [dataB, setDataB] = useState<Data>(data);
+  const rB = useMemo(() => calcular(dataB), [dataB]);
+  const setB = <K extends keyof Data>(key: K) => (v: Data[K]) => setDataB(d => ({ ...d, [key]: v }));
+
+  useEffect(() => {
+    if (!comparando) setDataB(data);
+  }, [comparando, data]);
 
   return (
     <div className="space-y-6">
@@ -506,6 +526,28 @@ function Step3({ data, r }: { data: Data; r: R }) {
       />
 
       {/* Hero: Crédito Líquido */}
+      <div className="flex justify-end">
+        <button
+          onClick={() => setComparando(!comparando)}
+          className="min-h-[56px] px-5 rounded-2xl border font-black text-xs uppercase tracking-widest flex items-center gap-2 transition-all active:scale-[0.97]"
+          style={{
+            background: comparando ? 'rgba(204,51,102,0.12)' : 'var(--gold-dim)',
+            borderColor: comparando ? 'rgba(204,51,102,0.35)' : 'var(--gold-border)',
+            color: comparando ? 'var(--alert)' : 'var(--gold)',
+          }}
+        >
+          {comparando ? <X size={14} /> : <Gavel size={14} />}
+          {comparando ? 'Fechar comparação' : 'Comparar cenário'}
+        </button>
+      </div>
+
+      {comparando ? (
+        <>
+          <ComparisonMode dataA={data} dataB={dataB} rA={r} rB={rB} setB={setB} setDataB={setDataB} />
+          <ShareButton message={buildLanceComparacaoMsg(lanceMsgData(data, r), lanceMsgData(dataB, rB))} />
+        </>
+      ) : (
+        <>
       <motion.div
         initial={{ scale: 0.96, opacity: 0.8 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -630,17 +672,161 @@ function Step3({ data, r }: { data: Data; r: R }) {
           : <>No <strong style={{ color: 'white' }}>lance livre</strong>, você desembolsa recursos próprios e recebe o crédito integral. O saldo devedor e a parcela não mudam.</>}
       </div>
       <ShareButton
-        message={buildLanceMsg({
-          valorCredito: data.valorCredito,
-          prazoTotal: data.prazoTotal,
-          tipoLance: data.tipoLance,
-          lanceTotalPercent: r.lanceTotalPercent,
-          lanceTotal: r.lanceTotal,
-          creditoLiquido: r.creditoLiquido,
-          saldoDevedor: r.saldoDevedor,
-          parcela: r.parcela,
-        })}
+        message={buildLanceMsg(lanceMsgData(data, r))}
       />
+        </>
+      )}
+    </div>
+  );
+}
+
+function ComparisonMetric({
+  label,
+  valueA,
+  valueB,
+  better,
+}: {
+  label: string;
+  valueA: string;
+  valueB: string;
+  better: 'higher' | 'lower' | 'neutral';
+}) {
+  const color = better === 'higher' ? '#00C864' : better === 'lower' ? 'var(--alert)' : 'white';
+  const borderColor = better === 'higher' ? 'rgba(0,200,100,0.45)' : better === 'lower' ? 'rgba(204,51,102,0.45)' : 'var(--border)';
+
+  return (
+    <div className="grid grid-cols-2 gap-3">
+      <div className="p-3 rounded-xl border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+        <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--text-secondary)' }}>{label}</p>
+        <p className="text-sm font-black text-white" style={{ fontFamily: 'Montserrat' }}>{valueA}</p>
+      </div>
+      <div className="p-3 rounded-xl border" style={{ background: 'var(--bg-card)', borderColor }}>
+        <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--text-secondary)' }}>{label}</p>
+        <p className="text-sm font-black" style={{ fontFamily: 'Montserrat', color }}>{valueB}</p>
+      </div>
+    </div>
+  );
+}
+
+function comparisonState(a: number, b: number, direction: 'higher' | 'lower'): 'higher' | 'lower' | 'neutral' {
+  if (Math.abs(a - b) < 0.01) return 'neutral';
+  const bIsBetter = direction === 'higher' ? b > a : b < a;
+  return bIsBetter ? 'higher' : 'lower';
+}
+
+function ComparisonMode({
+  dataA,
+  dataB,
+  rA,
+  rB,
+  setB,
+  setDataB,
+}: {
+  dataA: Data;
+  dataB: Data;
+  rA: R;
+  rB: R;
+  setB: <K extends keyof Data>(k: K) => (v: Data[K]) => void;
+  setDataB: React.Dispatch<React.SetStateAction<Data>>;
+}) {
+  const selectTierB = (tier: Tier) => {
+    setDataB(d => ({ ...d, tierSelecionado: tier, ofertaTotalPercent: Math.max(d.ofertaTotalPercent, tier) }));
+  };
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="p-5 rounded-2xl border space-y-4" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+        <div>
+          <p className="text-xs font-black uppercase tracking-widest" style={{ color: 'var(--gold)' }}>Cenário A</p>
+          <p className="text-sm font-bold text-white">Atual</p>
+        </div>
+        <StatCard label="Crédito líquido" value={fmt(rA.creditoLiquido)} accent />
+        <StatCard label="Lance total" value={fmt(rA.lanceTotal)} sub={`${rA.lanceTotalPercent}%`} />
+        <StatCard label="Recursos próprios" value={fmt(rA.recursosPropriosLance)} />
+        <StatCard label="Saldo devedor" value={fmt(rA.saldoDevedor)} />
+        <StatCard label="Parcela posterior" value={`${fmt(rA.parcela)}/mês`} />
+      </div>
+
+      <div className="p-5 rounded-2xl border space-y-4" style={{ background: 'rgba(193,177,118,0.05)', borderColor: 'var(--gold-border)' }}>
+        <div>
+          <p className="text-xs font-black uppercase tracking-widest" style={{ color: 'var(--gold)' }}>Cenário B</p>
+          <p className="text-sm font-bold text-white">Novo</p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          {(['livre', 'embutido'] as TipoLance[]).map(tipo => (
+            <button
+              key={tipo}
+              onClick={() => setB('tipoLance')(tipo)}
+              className="min-h-[56px] rounded-xl border font-bold text-sm"
+              style={{
+                background: dataB.tipoLance === tipo ? 'var(--gold-dim)' : 'rgba(255,255,255,0.03)',
+                borderColor: dataB.tipoLance === tipo ? 'var(--gold)' : 'var(--border)',
+                color: dataB.tipoLance === tipo ? 'var(--gold)' : 'white',
+              }}
+            >
+              {tipo === 'livre' ? 'Livre' : 'Embutido'}
+            </button>
+          ))}
+        </div>
+
+        {dataB.tipoLance === 'livre' ? (
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <Label>Lance livre</Label>
+              <span className="text-sm font-black" style={{ color: 'var(--gold)' }}>{dataB.lancePercent}%</span>
+            </div>
+            <input type="range" min={10} max={50} value={dataB.lancePercent} onChange={(e) => setB('lancePercent')(Number(e.target.value))} className="w-full" />
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="grid grid-cols-3 gap-2">
+              {TIERS.map(tier => (
+                <button
+                  key={tier.percent}
+                  onClick={() => selectTierB(tier.percent)}
+                  className="min-h-[56px] rounded-xl border font-black text-sm"
+                  style={{
+                    background: dataB.tierSelecionado === tier.percent ? `${tier.cor}22` : 'rgba(255,255,255,0.03)',
+                    borderColor: dataB.tierSelecionado === tier.percent ? tier.cor : 'var(--border)',
+                    color: dataB.tierSelecionado === tier.percent ? tier.cor : 'var(--text-secondary)',
+                  }}
+                >
+                  {tier.percent}%
+                </button>
+              ))}
+            </div>
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <Label>Oferta total</Label>
+                <span className="text-sm font-black" style={{ color: 'var(--gold)' }}>{dataB.ofertaTotalPercent}%</span>
+              </div>
+              <input
+                type="range"
+                min={dataB.tierSelecionado}
+                max={50}
+                value={dataB.ofertaTotalPercent}
+                onChange={(e) => setB('ofertaTotalPercent')(Number(e.target.value))}
+                className="w-full"
+              />
+            </div>
+          </div>
+        )}
+
+        <div>
+          <div className="flex justify-between items-center mb-2">
+            <Label>Mês de contemplação</Label>
+            <span className="text-sm font-black" style={{ color: 'var(--gold)' }}>Mês {dataB.mesContemplacao}</span>
+          </div>
+          <input type="range" min={1} max={dataB.prazoTotal} value={dataB.mesContemplacao} onChange={(e) => setB('mesContemplacao')(Number(e.target.value))} className="w-full" />
+        </div>
+
+        <ComparisonMetric label="Crédito líquido" valueA={fmt(rA.creditoLiquido)} valueB={fmt(rB.creditoLiquido)} better={comparisonState(rA.creditoLiquido, rB.creditoLiquido, 'higher')} />
+        <ComparisonMetric label="Lance total" valueA={`${fmt(rA.lanceTotal)} (${rA.lanceTotalPercent}%)`} valueB={`${fmt(rB.lanceTotal)} (${rB.lanceTotalPercent}%)`} better="neutral" />
+        <ComparisonMetric label="Recursos próprios" valueA={fmt(rA.recursosPropriosLance)} valueB={fmt(rB.recursosPropriosLance)} better={comparisonState(rA.recursosPropriosLance, rB.recursosPropriosLance, 'lower')} />
+        <ComparisonMetric label="Saldo devedor" valueA={fmt(rA.saldoDevedor)} valueB={fmt(rB.saldoDevedor)} better={comparisonState(rA.saldoDevedor, rB.saldoDevedor, 'lower')} />
+        <ComparisonMetric label="Parcela posterior" valueA={`${fmt(rA.parcela)}/mês`} valueB={`${fmt(rB.parcela)}/mês`} better={comparisonState(rA.parcela, rB.parcela, 'lower')} />
+      </div>
     </div>
   );
 }

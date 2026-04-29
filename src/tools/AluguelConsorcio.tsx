@@ -1,5 +1,6 @@
 ﻿import { useState, useMemo } from 'react';
 import { useCalculatorNavigation } from '../hooks/useCalculatorNavigation';
+import { usePersistedState } from '../hooks/usePersistedState';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft, ArrowRight, Home, ChevronLeft,
@@ -20,7 +21,7 @@ interface Props {
 
 export default function AluguelConsorcio({ onBack }: Props) {
   const { step, dir, goNext, goPrev, setStep } = useCalculatorNavigation(TOTAL_STEPS);
-  const [data, setData] = useState<AluguelData>({
+  const [data, setData] = usePersistedState<AluguelData>('prestige:aluguel:data', {
     valorCredito: 500000,
     taxaAdm: 0.23,
     prazoTotal: 220,

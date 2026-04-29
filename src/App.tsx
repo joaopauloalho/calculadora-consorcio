@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import PurposeScreen, { type Purpose } from './screens/PurposeScreen';
 import MatrixScreen from './screens/MatrixScreen';
+import DiagnosticoScreen from './screens/DiagnosticoScreen';
 import CompraeConstrucao from './tools/CompraeConstrucao';
 import VendaDaCartaContemplada from './tools/VendaDaCartaContemplada';
 import AluguelConsorcio from './tools/AluguelConsorcio';
@@ -10,8 +11,9 @@ import QuitacaoFinanciamento from './tools/QuitacaoFinanciamento';
 import QuickCalc from './tools/QuickCalc';
 import SimuladorLance from './tools/SimuladorLance';
 import CalculadoraLance from './tools/CalculadoraLance';
+import ComissaoVendedor from './tools/ComissaoVendedor';
 
-type View = 'purpose' | 'matrix' | 'tool' | 'quickcalc' | 'lance';
+type View = 'purpose' | 'matrix' | 'tool' | 'quickcalc' | 'lance' | 'diagnostico' | 'comissao';
 type Path = 'acquisition' | 'return';
 
 const pageVariants = {
@@ -30,6 +32,10 @@ export default function App() {
       setView('quickcalc');
     } else if (purpose === 'lance') {
       setView('lance');
+    } else if (purpose === 'diagnostico') {
+      setView('diagnostico');
+    } else if (purpose === 'comissao') {
+      setView('comissao');
     } else {
       setPath(purpose);
       setView('matrix');
@@ -61,6 +67,24 @@ export default function App() {
             path={path}
             onSelect={handleToolSelect}
             onBack={() => setView('purpose')}
+          />
+        </motion.div>
+      )}
+
+      {view === 'diagnostico' && (
+        <motion.div key="diagnostico" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}>
+          <DiagnosticoScreen
+            onBack={() => setView('purpose')}
+            onSelect={(t) => {
+              if (t === 'quickcalc') {
+                setView('quickcalc');
+              } else if (t === 'lance') {
+                setView('lance');
+              } else {
+                setTool(t);
+                setView('tool');
+              }
+            }}
           />
         </motion.div>
       )}
@@ -104,6 +128,12 @@ export default function App() {
       {view === 'lance' && (
         <motion.div key="lance" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}>
           <CalculadoraLance onBack={() => setView('purpose')} />
+        </motion.div>
+      )}
+
+      {view === 'comissao' && (
+        <motion.div key="comissao" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}>
+          <ComissaoVendedor onBack={() => setView('purpose')} />
         </motion.div>
       )}
     </AnimatePresence>

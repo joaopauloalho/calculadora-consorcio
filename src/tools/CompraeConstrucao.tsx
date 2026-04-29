@@ -1,5 +1,6 @@
 ﻿import { useState, useMemo } from 'react';
 import { useCalculatorNavigation } from '../hooks/useCalculatorNavigation';
+import { usePersistedState } from '../hooks/usePersistedState';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft, ArrowRight, Calculator, Info,
@@ -22,7 +23,7 @@ interface Props {
 
 export default function CompraeConstrucao({ onBack }: Props) {
   const { step, dir, goNext, goPrev, setStep } = useCalculatorNavigation(TOTAL_STEPS);
-  const [data, setData] = useState<SimData>({
+  const [data, setData] = usePersistedState<SimData>('prestige:compra:data', {
     valorTerreno: 200000,
     valorConstrucao: 800000,
     prazoTotal: 220,
