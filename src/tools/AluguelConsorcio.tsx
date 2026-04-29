@@ -9,6 +9,8 @@ import {
 import { calculateAluguel, calcularCascata, fmt, type AluguelData, type CicloResult, INCC_MEDIO_HISTORICO } from '../lib/calculations';
 import FunilContemplacao from '../components/FunilContemplacao';
 import { Label, StatCard, GoldInput, ProgressDots, StepHeader, slideVariants } from '../components/shared';
+import ShareButton from '../components/ShareButton';
+import { buildAluguelMsg } from '../lib/whatsapp';
 
 const TOTAL_STEPS = 6;
 
@@ -439,6 +441,7 @@ function Step6({ data, r, ciclos, numCiclos, setNumCiclos, valorMultiplier }: {
           </span>
         </div>
       </motion.div>
+      <ShareButton message={buildAluguelMsg(data, r)} />
     </div>
   );
 }
