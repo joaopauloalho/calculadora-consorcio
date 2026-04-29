@@ -9,6 +9,8 @@ import { calculateQuitacao, calcularEvolucaoCreditoSaldo, fmt, INCC_MEDIO_HISTOR
 import FunilContemplacao from '../components/FunilContemplacao';
 import { Label, StatCard, ProgressDots, StepHeader, slideVariants } from '../components/shared';
 import BRLInput from '../components/BRLInput';
+import ShareButton from '../components/ShareButton';
+import { buildQuitacaoMsg } from '../lib/whatsapp';
 
 const TOTAL_STEPS = 4;
 
@@ -558,6 +560,7 @@ function Step4({ data, r }: { data: QuitacaoData; r: Results }) {
           Saldo banco evolui com TR {((data.trMensal ?? 0.001) * 100).toFixed(1)}%/mês.
           Crédito atualizado pelo INCC {(data.inccAnual ?? INCC_MEDIO_HISTORICO).toFixed(2)}% a.a. (teto 5%).
         </div>
+        <ShareButton message={buildQuitacaoMsg(data, r)} />
       </div>
     </div>
   );
