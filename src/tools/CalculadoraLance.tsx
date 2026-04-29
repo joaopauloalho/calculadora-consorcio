@@ -5,6 +5,8 @@ import { ChevronLeft, ArrowLeft, ArrowRight, Gavel, Info, RefreshCw, CheckCircle
 import { aplicarReajusteINCC, fmt, INCC_MEDIO_HISTORICO } from '../lib/calculations';
 import BRLInput from '../components/BRLInput';
 import { Label, StatCard, ProgressDots, StepHeader, slideVariants } from '../components/shared';
+import ShareButton from '../components/ShareButton';
+import { buildLanceMsg } from '../lib/whatsapp';
 
 interface Props { onBack: () => void; }
 
@@ -627,6 +629,18 @@ function Step3({ data, r }: { data: Data; r: R }) {
           ? <>O <strong style={{ color: 'white' }}>lance embutido</strong> sai do seu crédito: você recebe menos carta, mas o saldo devedor cai pelo mesmo valor. A parcela permanece a mesma — menos meses a pagar.</>
           : <>No <strong style={{ color: 'white' }}>lance livre</strong>, você desembolsa recursos próprios e recebe o crédito integral. O saldo devedor e a parcela não mudam.</>}
       </div>
+      <ShareButton
+        message={buildLanceMsg({
+          valorCredito: data.valorCredito,
+          prazoTotal: data.prazoTotal,
+          tipoLance: data.tipoLance,
+          lanceTotalPercent: r.lanceTotalPercent,
+          lanceTotal: r.lanceTotal,
+          creditoLiquido: r.creditoLiquido,
+          saldoDevedor: r.saldoDevedor,
+          parcela: r.parcela,
+        })}
+      />
     </div>
   );
 }
