@@ -193,8 +193,8 @@ function OperacaoCard({ index, op, result, canDelete, onChange, onDelete }: Oper
               type="number"
               min={1}
               max={100}
-              value={op.percentVenda}
-              onChange={(e) => onChange({ percentVenda: Number(e.target.value) || 0 })}
+              value={op.percentVenda === 0 ? '' : op.percentVenda}
+              onChange={(e) => onChange({ percentVenda: e.target.value === '' ? 0 : Number(e.target.value) })}
               className="flex-1"
             />
             <span className="text-sm font-bold" style={{ color: 'var(--text-secondary)' }}>%</span>
