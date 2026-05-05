@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { Zap, Building2, TrendingUp, ArrowRight, Gavel, HelpCircle, Calculator, Shuffle, MessageSquareQuote } from 'lucide-react';
 
-export type Purpose = 'quickcalc' | 'lance' | 'sorteio' | 'acquisition' | 'return' | 'diagnostico' | 'atendimento' | 'comissao';
+export type Purpose = 'quickcalc' | 'lance' | 'sorteio' | 'acquisition' | 'return' | 'diagnostico' | 'atendimento' | 'comissao' | 'atacado';
 
 interface Props {
   onSelect: (purpose: Purpose) => void;
@@ -36,6 +36,18 @@ const cards = [
     ctaColor: '#5EB9AA',
     glowColor: 'rgba(94,185,170,0.22)',
     borderHover: 'rgba(94,185,170,0.4)',
+  },
+  {
+    id: 'atacado' as Purpose,
+    iconEl: <Building2 size={24} style={{ color: '#031715' }} />,
+    iconBg: 'var(--gold)',
+    title: 'Atacado\nImobiliário',
+    description:
+      'Monte operações em carteira: pague a meia parcela até contemplar e venda o crédito para o comprador do imóvel. Calcule o lucro consolidado de todas as operações.',
+    cta: 'Montar carteira',
+    ctaColor: 'var(--gold)',
+    glowColor: 'rgba(201, 168, 76, 0.22)',
+    borderHover: 'rgba(201, 168, 76, 0.4)',
   },
   {
     id: 'quickcalc' as Purpose,

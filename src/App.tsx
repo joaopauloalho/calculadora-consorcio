@@ -13,8 +13,9 @@ import QuickCalc from './tools/QuickCalc';
 import SimuladorLance from './tools/SimuladorLance';
 import CalculadoraLance from './tools/CalculadoraLance';
 import ComissaoVendedor from './tools/ComissaoVendedor';
+import AtacadoImobiliario from './tools/AtacadoImobiliario';
 
-type View = 'purpose' | 'matrix' | 'tool' | 'quickcalc' | 'lance' | 'sorteio' | 'diagnostico' | 'atendimento' | 'comissao';
+type View = 'purpose' | 'matrix' | 'tool' | 'quickcalc' | 'lance' | 'sorteio' | 'diagnostico' | 'atendimento' | 'comissao' | 'atacado';
 type Path = 'acquisition' | 'return';
 
 const pageVariants = {
@@ -41,6 +42,8 @@ export default function App() {
       setView('atendimento');
     } else if (purpose === 'comissao') {
       setView('comissao');
+    } else if (purpose === 'atacado') {
+      setView('atacado');
     } else {
       setPath(purpose);
       setView('matrix');
@@ -163,6 +166,12 @@ export default function App() {
       {view === 'comissao' && (
         <motion.div key="comissao" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}>
           <ComissaoVendedor onBack={() => setView('purpose')} />
+        </motion.div>
+      )}
+
+      {view === 'atacado' && (
+        <motion.div key="atacado" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}>
+          <AtacadoImobiliario onBack={() => setView('purpose')} />
         </motion.div>
       )}
     </AnimatePresence>
