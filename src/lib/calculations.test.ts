@@ -9,8 +9,11 @@ import {
   calculateCartaAplicada,
   calculateQuickCalc,
   calculateComissao,
+  calculateAtacadoOperacao,
+  calculateAtacadoConsolidado,
   fmt,
   INCC_MEDIO_HISTORICO,
+  type AtacadoOperacao,
 } from './calculations';
 
 // ─── Utilitários ─────────────────────────────────���────────────────────────────
@@ -448,5 +451,82 @@ describe('calculateComissao', () => {
 
     expect(r.comissaoTotal).toBe(8_000);
     expect(r.vendasParaMeta).toBe(3);
+  });
+});
+
+// ─── calculateAtacadoOperacao & calculateAtacadoConsolidado ───────────────────
+
+describe('calculateAtacadoOperacao', () => {
+  const base: AtacadoOperacao = { id: '1', valorCarta: 500000, mesContemplacao: 30, percentVenda: 42 };
+
+  it('calculates meiaParcela from valorCarta', () => {
+    // (500000 * 1.23) / 220 / 2 = 1397.73
+    const r = calculateAtacadoOperacao(base);
+    expect(r.meiaParcela).toBeCloseTo(1397.73, 0);
+  });
+
+  it('calculates valorPago as meiaParcela * mesContemplacao', () => {
+    const r = calculateAtacadoOperacao(base);
+    expect(r.valorPago).toBeCloseTo(41931.8, 0);
+  });
+
+  it('applies INCC correction to creditoAtualizado (floor to complete years)', () => {
+    // floor(30/12)=2 anos => 500000 * (1.0457)^2 = ~546744.25
+    const r = calculateAtacadoOperacao(base);
+    expect(r.creditoAtualizado).toBeCloseTo(546744.25, 0);
+  });
+
+  it('calculates vendaConsumidor as creditoAtualizado * percentVenda/100', () => {
+    const r = calculateAtacadoOperacao(base);
+    expect(r.vendaConsumidor).toBeCloseTo(229632.58, 0);
+  });
+
+  it('calculates lucro as vendaConsumidor - valorPago', () => {
+    const r = calculateAtacadoOperacao(base);
+    expect(r.lucro).toBeCloseTo(r.vendaConsumidor - r.valorPago, 0);
+  });
+
+  it('calculates retornoMensal as lucro/valorPago/mes*100', () => {
+    const r = calculateAtacadoOperacao(base);
+    expect(r.retornoMensal).toBeCloseTo((r.lucro / r.valorPago / base.mesContemplacao) * 100, 4);
+  });
+});
+
+describe('calculateAtacadoConsolidado', () => {
+  const ops: AtacadoOperacao[] = [
+    { id: '1', valorCarta: 500000, mesContemplacao: 30, percentVenda: 42 },
+    { id: '2', valorCarta: 300000, mesContemplacao: 24, percentVenda: 40 },
+  ];
+
+  it('sums totalParcelas from all operations meiaParcela', () => {
+    const results = ops.map(o => calculateAtacadoOperacao(o));
+    const c = calculateAtacadoConsolidado(ops, results);
+    const expected = results[0].meiaParcela + results[1].meiaParcela;
+    expect(c.totalParcelas).toBeCloseTo(expected, 0);
+  });
+
+  it('sums totalCredito from all operations valorCarta', () => {
+    const results = ops.map(o => calculateAtacadoOperacao(o));
+    const c = calculateAtacadoConsolidado(ops, results);
+    expect(c.totalCredito).toBe(800000);
+  });
+
+  it('sums totalLucro from all operations lucro', () => {
+    const results = ops.map(o => calculateAtacadoOperacao(o));
+    const c = calculateAtacadoConsolidado(ops, results);
+    const expected = results[0].lucro + results[1].lucro;
+    expect(c.totalLucro).toBeCloseTo(expected, 0);
+  });
+
+  it('averages retornoMedioMensal across operations', () => {
+    const results = ops.map(o => calculateAtacadoOperacao(o));
+    const c = calculateAtacadoConsolidado(ops, results);
+    const expected = (results[0].retornoMensal + results[1].retornoMensal) / 2;
+    expect(c.retornoMedioMensal).toBeCloseTo(expected, 4);
+  });
+
+  it('returns zero retornoMedioMensal for empty array', () => {
+    const c = calculateAtacadoConsolidado([], []);
+    expect(c.retornoMedioMensal).toBe(0);
   });
 });

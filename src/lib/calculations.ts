@@ -699,3 +699,55 @@ export function calcularCascata(
 
   return ciclos;
 }
+
+// ── Atacado Imobiliário ─────────────────────────────────────────────────────
+
+const ATACADO_TAX_ADM = 0.23;
+const ATACADO_PRAZO = 220;
+
+export interface AtacadoOperacao {
+  id: string;
+  valorCarta: number;
+  mesContemplacao: number;
+  percentVenda: number;
+}
+
+export interface AtacadoOperacaoResult {
+  meiaParcela: number;
+  valorPago: number;
+  creditoAtualizado: number;
+  vendaConsumidor: number;
+  lucro: number;
+  retornoMensal: number;
+}
+
+export interface AtacadoConsolidado {
+  totalParcelas: number;
+  totalCredito: number;
+  totalLucro: number;
+  retornoMedioMensal: number;
+}
+
+export function calculateAtacadoOperacao(op: AtacadoOperacao): AtacadoOperacaoResult {
+  const meiaParcela = (op.valorCarta * (1 + ATACADO_TAX_ADM)) / ATACADO_PRAZO / 2;
+  const valorPago = meiaParcela * op.mesContemplacao;
+  const creditoAtualizado = aplicarReajusteINCC(op.valorCarta, INCC_MEDIO_HISTORICO, op.mesContemplacao);
+  const vendaConsumidor = creditoAtualizado * (op.percentVenda / 100);
+  const lucro = vendaConsumidor - valorPago;
+  const retornoMensal = valorPago > 0 ? (lucro / valorPago / op.mesContemplacao) * 100 : 0;
+  return { meiaParcela, valorPago, creditoAtualizado, vendaConsumidor, lucro, retornoMensal };
+}
+
+export function calculateAtacadoConsolidado(
+  ops: AtacadoOperacao[],
+  results: AtacadoOperacaoResult[],
+): AtacadoConsolidado {
+  const totalParcelas = results.reduce((sum, r) => sum + r.meiaParcela, 0);
+  const totalCredito = ops.reduce((sum, op) => sum + op.valorCarta, 0);
+  const totalLucro = results.reduce((sum, r) => sum + r.lucro, 0);
+  const retornoMedioMensal =
+    results.length > 0
+      ? results.reduce((sum, r) => sum + r.retornoMensal, 0) / results.length
+      : 0;
+  return { totalParcelas, totalCredito, totalLucro, retornoMedioMensal };
+}
