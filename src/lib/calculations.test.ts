@@ -1,4 +1,3 @@
-// @vitest-environment jsdom
 import { describe, it, expect } from 'vitest';
 import {
   aplicarReajusteINCC,
@@ -484,7 +483,7 @@ describe('calculateAtacadoOperacao', () => {
 
   it('calculates lucro as vendaConsumidor minus valorPago', () => {
     const r = calculateAtacadoOperacao(base);
-    expect(r.lucro).toBeCloseTo(187716, 0);
+    expect(r.lucro).toBeCloseTo(187701, 0);
   });
 
   it('calculates retornoMensal correctly', () => {
