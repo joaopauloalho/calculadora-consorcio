@@ -7,7 +7,7 @@ import {
   fmt,
   type AtacadoOperacao,
 } from '../lib/calculations';
-import { Label, StatCard } from '../components/shared';
+import { Label } from '../components/shared';
 import BRLInput from '../components/BRLInput';
 
 interface Props {
@@ -203,27 +203,18 @@ function OperacaoCard({ index, op, result, canDelete, onChange, onDelete }: Oper
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <StatCard
-          label="Valor Pago"
-          value={fmt(result.valorPago)}
-          sub={`${op.mesContemplacao} × ${fmt(result.meiaParcela)}`}
-        />
-        <StatCard
-          label="Crédito Atualizado"
-          value={fmt(result.creditoAtualizado)}
-          sub="INCC 4.57% a.a."
-          accent
-        />
-        <StatCard
-          label="Venda ao Consumidor"
-          value={fmt(result.vendaConsumidor)}
-          sub={`${op.percentVenda}% do crédito`}
-        />
-        <StatCard
-          label="Lucro da Operação"
-          value={fmt(result.lucro)}
-          color={isLucroPositivo ? '#00C864' : 'var(--alert)'}
-        />
+        {[
+          { label: 'Valor Pago', value: fmt(result.valorPago), sub: `${op.mesContemplacao} × ${fmt(result.meiaParcela)}`, color: 'white' },
+          { label: 'Crédito Atualizado', value: fmt(result.creditoAtualizado), sub: 'INCC 4.57% a.a.', color: 'var(--gold)' },
+          { label: 'Venda ao Consumidor', value: fmt(result.vendaConsumidor), sub: `${op.percentVenda}% do crédito`, color: 'white' },
+          { label: 'Lucro da Operação', value: fmt(result.lucro), sub: null, color: isLucroPositivo ? '#00C864' : 'var(--alert)' },
+        ].map(({ label, value, sub, color }) => (
+          <div key={label} className="p-3 rounded-xl border" style={{ background: 'var(--bg-card)', borderColor: 'var(--border)' }}>
+            <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--text-secondary)' }}>{label}</p>
+            <p className="text-sm font-black leading-tight" style={{ fontFamily: 'Montserrat', color }}>{value}</p>
+            {sub && <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>{sub}</p>}
+          </div>
+        ))}
       </div>
     </motion.div>
   );
