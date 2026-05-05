@@ -745,6 +745,7 @@ export function calculateAtacadoConsolidado(
   const totalParcelas = results.reduce((sum, r) => sum + r.meiaParcela, 0);
   const totalCredito = ops.reduce((sum, op) => sum + op.valorCarta, 0);
   const totalLucro = results.reduce((sum, r) => sum + r.lucro, 0);
+  // Simple (unweighted) average — operations with larger capital have equal weight
   const retornoMedioMensal =
     results.length > 0
       ? results.reduce((sum, r) => sum + r.retornoMensal, 0) / results.length
