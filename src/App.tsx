@@ -3,10 +3,12 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { LoginPage } from './pages/LoginPage';
 import { ClienteAuthScreen } from './pages/cartas/ClienteAuthScreen';
 import { CartasPortalPage } from './pages/cartas/CartasPortalPage';
 import { ClienteDashboardPage } from './pages/cartas/ClienteDashboardPage';
 import { AdminCartasPage } from './pages/admin/AdminCartasPage';
+import { UserManagementPage } from './pages/admin/UserManagementPage';
 import PurposeScreen, { type Purpose } from './screens/PurposeScreen';
 import MatrixScreen from './screens/MatrixScreen';
 import DiagnosticoScreen from './screens/DiagnosticoScreen';
@@ -39,30 +41,17 @@ function CockpitApp() {
   const [tool, setTool] = useState<number | null>(null);
 
   const handlePurposeSelect = (purpose: Purpose) => {
-    if (purpose === 'quickcalc') {
-      setView('quickcalc');
-    } else if (purpose === 'lance') {
-      setView('lance');
-    } else if (purpose === 'sorteio') {
-      setView('sorteio');
-    } else if (purpose === 'diagnostico') {
-      setView('diagnostico');
-    } else if (purpose === 'atendimento') {
-      setView('atendimento');
-    } else if (purpose === 'comissao') {
-      setView('comissao');
-    } else if (purpose === 'atacado') {
-      setView('atacado');
-    } else {
-      setPath(purpose);
-      setView('matrix');
-    }
+    if (purpose === 'quickcalc') setView('quickcalc');
+    else if (purpose === 'lance') setView('lance');
+    else if (purpose === 'sorteio') setView('sorteio');
+    else if (purpose === 'diagnostico') setView('diagnostico');
+    else if (purpose === 'atendimento') setView('atendimento');
+    else if (purpose === 'comissao') setView('comissao');
+    else if (purpose === 'atacado') setView('atacado');
+    else { setPath(purpose); setView('matrix'); }
   };
 
-  const handleToolSelect = (t: number) => {
-    setTool(t);
-    setView('tool');
-  };
+  const handleToolSelect = (t: number) => { setTool(t); setView('tool'); };
 
   return (
     <AnimatePresence mode="wait">
@@ -70,122 +59,46 @@ function CockpitApp() {
         <motion.div key="purpose" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}>
           <PurposeScreen
             onSelect={handlePurposeSelect}
-            onAdminCartas={role === 'admin' ? () => navigate('/admin/cartas') : undefined}
+            onAdminCartas={role === 'master' ? () => navigate('/admin/cartas') : undefined}
           />
         </motion.div>
       )}
-
       {view === 'quickcalc' && (
         <motion.div key="quickcalc" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}>
           <QuickCalc onBack={() => setView('purpose')} />
         </motion.div>
       )}
-
       {view === 'matrix' && (
         <motion.div key="matrix" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}>
-          <MatrixScreen
-            path={path}
-            onSelect={handleToolSelect}
-            onBack={() => setView('purpose')}
-          />
+          <MatrixScreen path={path} onSelect={handleToolSelect} onBack={() => setView('purpose')} />
         </motion.div>
       )}
-
       {view === 'diagnostico' && (
         <motion.div key="diagnostico" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}>
           <DiagnosticoScreen
             onBack={() => setView('purpose')}
-            onSelect={(t) => {
-              if (t === 'quickcalc') {
-                setView('quickcalc');
-              } else if (t === 'lance') {
-                setView('lance');
-              } else {
-                setTool(t);
-                setView('tool');
-              }
-            }}
+            onSelect={(t) => { if (t === 'quickcalc') setView('quickcalc'); else if (t === 'lance') setView('lance'); else { setTool(t); setView('tool'); } }}
           />
         </motion.div>
       )}
-
       {view === 'atendimento' && (
         <motion.div key="atendimento" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}>
           <AtendimentoScreen
             onBack={() => setView('purpose')}
-            onSelect={(t) => {
-              if (t === 'quickcalc') {
-                setView('quickcalc');
-              } else if (t === 'lance') {
-                setView('lance');
-              } else {
-                setTool(t);
-                setView('tool');
-              }
-            }}
+            onSelect={(t) => { if (t === 'quickcalc') setView('quickcalc'); else if (t === 'lance') setView('lance'); else { setTool(t); setView('tool'); } }}
           />
         </motion.div>
       )}
-
-      {view === 'tool' && tool === 1 && (
-        <motion.div key="tool-1" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}>
-          <CompraeConstrucao onBack={() => setView('matrix')} />
-        </motion.div>
-      )}
-
-      {view === 'tool' && tool === 2 && (
-        <motion.div key="tool-2" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}>
-          <VendaDaCartaContemplada onBack={() => setView('matrix')} />
-        </motion.div>
-      )}
-
-      {view === 'tool' && tool === 3 && (
-        <motion.div key="tool-3" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}>
-          <AluguelConsorcio onBack={() => setView('matrix')} />
-        </motion.div>
-      )}
-
-      {view === 'tool' && tool === 4 && (
-        <motion.div key="tool-4" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}>
-          <CartaAplicada onBack={() => setView('matrix')} />
-        </motion.div>
-      )}
-
-      {view === 'tool' && tool === 5 && (
-        <motion.div key="tool-5" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}>
-          <QuitacaoFinanciamento onBack={() => setView('matrix')} />
-        </motion.div>
-      )}
-
-      {view === 'tool' && tool === 6 && (
-        <motion.div key="tool-6" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}>
-          <SimuladorLance onBack={() => setView('matrix')} />
-        </motion.div>
-      )}
-
-      {view === 'lance' && (
-        <motion.div key="lance" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}>
-          <CalculadoraLance onBack={() => setView('purpose')} />
-        </motion.div>
-      )}
-
-      {view === 'sorteio' && (
-        <motion.div key="sorteio" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}>
-          <SimuladorLance onBack={() => setView('purpose')} />
-        </motion.div>
-      )}
-
-      {view === 'comissao' && (
-        <motion.div key="comissao" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}>
-          <ComissaoVendedor onBack={() => setView('purpose')} />
-        </motion.div>
-      )}
-
-      {view === 'atacado' && (
-        <motion.div key="atacado" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}>
-          <AtacadoImobiliario onBack={() => setView('purpose')} />
-        </motion.div>
-      )}
+      {view === 'tool' && tool === 1 && <motion.div key="tool-1" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}><CompraeConstrucao onBack={() => setView('matrix')} /></motion.div>}
+      {view === 'tool' && tool === 2 && <motion.div key="tool-2" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}><VendaDaCartaContemplada onBack={() => setView('matrix')} /></motion.div>}
+      {view === 'tool' && tool === 3 && <motion.div key="tool-3" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}><AluguelConsorcio onBack={() => setView('matrix')} /></motion.div>}
+      {view === 'tool' && tool === 4 && <motion.div key="tool-4" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}><CartaAplicada onBack={() => setView('matrix')} /></motion.div>}
+      {view === 'tool' && tool === 5 && <motion.div key="tool-5" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}><QuitacaoFinanciamento onBack={() => setView('matrix')} /></motion.div>}
+      {view === 'tool' && tool === 6 && <motion.div key="tool-6" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}><SimuladorLance onBack={() => setView('matrix')} /></motion.div>}
+      {view === 'lance' && <motion.div key="lance" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}><CalculadoraLance onBack={() => setView('purpose')} /></motion.div>}
+      {view === 'sorteio' && <motion.div key="sorteio" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}><SimuladorLance onBack={() => setView('purpose')} /></motion.div>}
+      {view === 'comissao' && <motion.div key="comissao" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}><ComissaoVendedor onBack={() => setView('purpose')} /></motion.div>}
+      {view === 'atacado' && <motion.div key="atacado" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}><AtacadoImobiliario onBack={() => setView('purpose')} /></motion.div>}
     </AnimatePresence>
   );
 }
@@ -194,32 +107,20 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Rotas públicas */}
+        <Route path="/login" element={<LoginPage />} />
         <Route path="/cartas" element={<ClienteAuthScreen />} />
-        <Route
-          path="/cartas/portal"
-          element={
-            <ProtectedRoute role="cliente">
-              <CartasPortalPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/cartas/dashboard"
-          element={
-            <ProtectedRoute role="cliente">
-              <ClienteDashboardPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/cartas"
-          element={
-            <ProtectedRoute role="admin">
-              <AdminCartasPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="/*" element={<CockpitApp />} />
+
+        {/* Rotas de cliente */}
+        <Route path="/cartas/portal" element={<ProtectedRoute roles={['cliente']}><CartasPortalPage /></ProtectedRoute>} />
+        <Route path="/cartas/dashboard" element={<ProtectedRoute roles={['cliente']}><ClienteDashboardPage /></ProtectedRoute>} />
+
+        {/* Rotas master */}
+        <Route path="/admin/cartas" element={<ProtectedRoute roles={['master']}><AdminCartasPage /></ProtectedRoute>} />
+        <Route path="/admin/usuarios" element={<ProtectedRoute roles={['master']}><UserManagementPage /></ProtectedRoute>} />
+
+        {/* Cockpit interno — vendedor e master */}
+        <Route path="/*" element={<ProtectedRoute roles={['vendedor', 'master']}><CockpitApp /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   );
