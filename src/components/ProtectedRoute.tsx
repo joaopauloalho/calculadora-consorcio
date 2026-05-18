@@ -1,13 +1,14 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import type { Profile } from '../lib/supabaseTypes';
 
 interface Props {
   children: React.ReactNode;
-  role: 'admin' | 'cliente';
+  roles: Profile['role'][];
   redirectTo?: string;
 }
 
-export function ProtectedRoute({ children, role, redirectTo }: Props) {
+export function ProtectedRoute({ children, roles, redirectTo }: Props) {
   const { session, role: userRole, loading } = useAuth();
 
   if (loading) {
@@ -18,13 +19,14 @@ export function ProtectedRoute({ children, role, redirectTo }: Props) {
     );
   }
 
-  if (!session) {
-    const fallback = role === 'admin' ? '/' : '/cartas';
+  if (!session || !userRole) {
+    const fallback = roles.includes('cliente') ? '/cartas' : '/login';
     return <Navigate to={redirectTo ?? fallback} replace />;
   }
 
-  if (role === 'admin' && userRole !== 'admin') {
-    return <Navigate to="/cartas" replace />;
+  if (!roles.includes(userRole)) {
+    if (userRole === 'cliente') return <Navigate to="/cartas/portal" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;
