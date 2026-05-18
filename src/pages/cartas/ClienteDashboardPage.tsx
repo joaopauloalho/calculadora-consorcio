@@ -43,24 +43,26 @@ export function ClienteDashboardPage() {
           <div className="space-y-3">
             {reservas.map(r => (
               <div key={r.id} className="bg-[#041e1b] border border-[#0d3330] rounded-xl p-4">
-                {r.cartas_contempladas && (
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="text-xs text-[#5EB9AA] uppercase tracking-wider">
-                        {labelTipo(r.cartas_contempladas.tipo)}
-                      </p>
-                      <p className="text-white font-bold text-lg">
-                        {formatCurrency(r.cartas_contempladas.valor_credito)}
-                      </p>
-                      <p className="text-[#C9A84C] text-sm font-semibold">
-                        {r.cartas_contempladas.percentual_compra}% = {formatCurrency(r.cartas_contempladas.valor_compra)}
-                      </p>
-                    </div>
-                    <span className={`text-xs font-semibold px-2 py-1 rounded-full ${reservaStatusColor[r.status]}`}>
-                      {labelStatusReserva(r.status)}
-                    </span>
+                <div className="flex justify-between items-start">
+                  <div>
+                    {r.cartas_contempladas && (
+                      <>
+                        <span className="text-xs font-semibold px-2 py-1 rounded-full bg-[#0d3330] text-[#5EB9AA] uppercase tracking-wider">
+                          {labelTipo(r.cartas_contempladas.tipo)}
+                        </span>
+                        <p className="text-white font-bold text-lg mt-2">
+                          {formatCurrency(r.cartas_contempladas.valor_credito)}
+                        </p>
+                        <p className="text-[#C9A84C] text-sm font-semibold">
+                          {r.cartas_contempladas.percentual_compra}% = {formatCurrency(r.cartas_contempladas.valor_compra)}
+                        </p>
+                      </>
+                    )}
                   </div>
-                )}
+                  <span className={`text-xs font-semibold px-2 py-1 rounded-full ${reservaStatusColor[r.status]}`}>
+                    {labelStatusReserva(r.status)}
+                  </span>
+                </div>
                 {r.mensagem && <p className="text-[#5EB9AA] text-xs mt-2">"{r.mensagem}"</p>}
               </div>
             ))}
