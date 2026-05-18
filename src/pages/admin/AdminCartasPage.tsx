@@ -71,14 +71,22 @@ export function AdminCartasPage() {
           <button onClick={() => navigate('/')} className="text-[#5EB9AA] text-sm hover:text-white">← Cockpit</button>
           <p className="text-xs font-extrabold tracking-[0.3em] text-[#C9A84C] uppercase">Gestão de Cartas</p>
         </div>
-        {tab === 'cartas' && (
+        <div className="flex items-center gap-2">
           <button
-            onClick={() => { setEditingCarta(undefined); setShowForm(true); }}
-            className="bg-[#C9A84C] text-[#031715] text-xs font-bold px-4 py-2 rounded-lg hover:bg-[#d4b560] transition-colors"
+            onClick={() => navigate('/admin/usuarios')}
+            className="text-xs text-[#5EB9AA] border border-[#1a4a44] px-3 py-1.5 rounded-lg hover:text-white hover:border-[#5EB9AA] transition-colors"
           >
-            + Nova Carta
+            Usuários
           </button>
-        )}
+          {tab === 'cartas' && (
+            <button
+              onClick={() => { setEditingCarta(undefined); setShowForm(true); }}
+              className="bg-[#C9A84C] text-[#031715] text-xs font-bold px-4 py-2 rounded-lg hover:bg-[#d4b560] transition-colors"
+            >
+              + Nova Carta
+            </button>
+          )}
+        </div>
       </header>
 
       {/* Tabs */}
