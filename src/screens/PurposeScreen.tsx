@@ -5,6 +5,7 @@ export type Purpose = 'quickcalc' | 'lance' | 'sorteio' | 'acquisition' | 'retur
 
 interface Props {
   onSelect: (purpose: Purpose) => void;
+  onAdminCartas?: () => void;
 }
 
 const card = {
@@ -127,7 +128,7 @@ function PrestigeMark({ size = 36 }: { size?: number }) {
   );
 }
 
-export default function PurposeScreen({ onSelect }: Props) {
+export default function PurposeScreen({ onSelect, onAdminCartas }: Props) {
   return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center px-6 py-16">
 
@@ -240,16 +241,30 @@ export default function PurposeScreen({ onSelect }: Props) {
         ))}
       </motion.div>
 
-      <motion.button
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.9, duration: 0.5 }}
-        onClick={() => onSelect('comissao')}
-        className="mt-8 text-[11px] font-semibold flex items-center gap-1.5 transition-opacity hover:opacity-70"
-        style={{ color: 'rgba(247,248,253,0.25)' }}
-      >
-        <Calculator size={11} /> Minha comissão
-      </motion.button>
+      <div className="mt-8 flex items-center gap-4">
+        <motion.button
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.9, duration: 0.5 }}
+          onClick={() => onSelect('comissao')}
+          className="text-[11px] font-semibold flex items-center gap-1.5 transition-opacity hover:opacity-70"
+          style={{ color: 'rgba(247,248,253,0.25)' }}
+        >
+          <Calculator size={11} /> Minha comissão
+        </motion.button>
+        {onAdminCartas && (
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.9, duration: 0.5 }}
+            onClick={onAdminCartas}
+            className="text-[11px] font-semibold transition-opacity hover:opacity-70"
+            style={{ color: 'rgba(94,185,170,0.4)' }}
+          >
+            Gestão de Cartas
+          </motion.button>
+        )}
+      </div>
 
       {/* Footer disclaimer */}
       <motion.p

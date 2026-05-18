@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
+import { useAuth } from './hooks/useAuth';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { ClienteAuthScreen } from './pages/cartas/ClienteAuthScreen';
 import { CartasPortalPage } from './pages/cartas/CartasPortalPage';
@@ -31,6 +32,8 @@ const pageVariants = {
 };
 
 function CockpitApp() {
+  const { role } = useAuth();
+  const navigate = useNavigate();
   const [view, setView] = useState<View>('purpose');
   const [path, setPath] = useState<Path>('acquisition');
   const [tool, setTool] = useState<number | null>(null);
@@ -65,7 +68,10 @@ function CockpitApp() {
     <AnimatePresence mode="wait">
       {view === 'purpose' && (
         <motion.div key="purpose" variants={pageVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.4 }}>
-          <PurposeScreen onSelect={handlePurposeSelect} />
+          <PurposeScreen
+            onSelect={handlePurposeSelect}
+            onAdminCartas={role === 'admin' ? () => navigate('/admin/cartas') : undefined}
+          />
         </motion.div>
       )}
 
