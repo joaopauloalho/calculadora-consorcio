@@ -1,5 +1,11 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { ClienteAuthScreen } from './pages/cartas/ClienteAuthScreen';
+import { CartasPortalPage } from './pages/cartas/CartasPortalPage';
+import { ClienteDashboardPage } from './pages/cartas/ClienteDashboardPage';
+import { AdminCartasPage } from './pages/admin/AdminCartasPage';
 import PurposeScreen, { type Purpose } from './screens/PurposeScreen';
 import MatrixScreen from './screens/MatrixScreen';
 import DiagnosticoScreen from './screens/DiagnosticoScreen';
@@ -24,7 +30,7 @@ const pageVariants = {
   exit: { opacity: 0, y: -24 },
 };
 
-export default function App() {
+function CockpitApp() {
   const [view, setView] = useState<View>('purpose');
   const [path, setPath] = useState<Path>('acquisition');
   const [tool, setTool] = useState<number | null>(null);
@@ -175,5 +181,40 @@ export default function App() {
         </motion.div>
       )}
     </AnimatePresence>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/cartas" element={<ClienteAuthScreen />} />
+        <Route
+          path="/cartas/portal"
+          element={
+            <ProtectedRoute role="cliente">
+              <CartasPortalPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/cartas/dashboard"
+          element={
+            <ProtectedRoute role="cliente">
+              <ClienteDashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/cartas"
+          element={
+            <ProtectedRoute role="admin">
+              <AdminCartasPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/*" element={<CockpitApp />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
