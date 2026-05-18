@@ -22,7 +22,9 @@ export interface Cliente {
 
 export interface Profile {
   id: string;
-  role: 'admin' | 'cliente';
+  role: 'master' | 'vendedor' | 'cliente';
+  nome?: string;
+  email?: string;
 }
 
 export interface Reserva {
