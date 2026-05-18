@@ -26,27 +26,39 @@ export function useAuth() {
   });
 
   useEffect(() => {
+    let mounted = true;
+
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!mounted) return;
       setState(prev => ({ ...prev, session, user: session?.user ?? null }));
       if (session?.user) fetchRole(session.user.id);
       else setState(prev => ({ ...prev, loading: false }));
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return;
       setState(prev => ({ ...prev, session, user: session?.user ?? null }));
       if (session?.user) fetchRole(session.user.id);
       else setState(prev => ({ ...prev, role: null, loading: false }));
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   async function fetchRole(userId: string) {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', userId)
       .single();
+    if (error) {
+      console.error('Failed to fetch role:', error.message);
+      setState(prev => ({ ...prev, role: null, loading: false }));
+      return;
+    }
     setState(prev => ({ ...prev, role: data?.role ?? 'cliente', loading: false }));
   }
 
@@ -59,16 +71,18 @@ export function useAuth() {
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) throw error;
     if (data.user) {
-      await supabase.from('clientes').insert({
+      const { error: clienteError } = await supabase.from('clientes').insert({
         id: data.user.id,
         nome,
         telefone: telefone ?? null,
       });
+      if (clienteError) throw new Error(`Failed to create client record: ${clienteError.message}`);
     }
   }
 
   async function signOut() {
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
   }
 
   return { ...state, signIn, signUp, signOut };
